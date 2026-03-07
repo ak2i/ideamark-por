@@ -49,7 +49,7 @@ anchorage:
   view: "background"
   phase: "design"
   domain: ["por","architecture"]
-````
+```
 
 IdeaMark 文書は
 
