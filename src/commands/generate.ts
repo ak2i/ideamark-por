@@ -136,15 +136,36 @@ export async function runGenerate(config: RunConfig): Promise<number> {
 
   // --- report summary (spec §10) ---
   const filtered = extraction.resolved.length - deduped.length;
+  const failedTaskCount = extraction.stats.failed_calls;
+  const totalTaskRuns = extraction.stats.chunk_count * extraction.stats.task_count;
   console.error("");
   console.error("=== ideamark-por generate summary ===");
   console.error(`source:      ${source.source_id} (${source.units[0].char_length} chars)`);
   console.error(`projection:  ${projection.id}`);
-  console.error(`chunks:      ${chunks.length}   tasks: ${tasks.length}   llm calls: ${extraction.stats.call_count} (${extraction.stats.failed_calls} failed, ${extraction.stats.retry_count} retried)`);
-  console.error(`matches:     ${extraction.stats.raw_match_count} raw -> ${deduped.length} deduped (${filtered} filtered/merged)`);
-  console.error(`clusters:    ${clusters.length} total, ${promoted.length} promoted (threshold ${M1_DEFAULTS.candidate_threshold})`);
+  console.error(`provider:    ${config.llmProvider}` + (config.llmProvider === "mock" ? "" : ` (${config.llmModel || M1_DEFAULTS.llm_model})`));
+  console.error(`workload:    ${chunks.length} chunk(s), ${tasks.length} task(s), ${totalTaskRuns} task run(s)`);
+  console.error("");
+  console.error("LLM quality:");
+  console.error(`  calls:             ${extraction.stats.call_count}`);
+  console.error(`  schema errors:     ${extraction.stats.schema_error_count}`);
+  console.error(`  retries:           ${extraction.stats.retry_count}`);
+  console.error(`  retry success:     ${extraction.stats.retry_success_count}`);
+  console.error(`  retry failed:      ${extraction.stats.retry_failed_count}`);
+  console.error(`  anchor warnings:   ${extraction.stats.anchoring_warning_count}`);
+  console.error("");
+  console.error("Extraction:");
+  console.error(`  matched chunks:    ${extraction.stats.matched_chunk_count}`);
+  console.error(`  no-hit chunks:     ${extraction.stats.no_hit_chunk_count}`);
+  console.error(`  matched tasks:     ${extraction.stats.matched_task_count}`);
+  console.error(`  no-hit tasks:      ${extraction.stats.no_hit_task_count}`);
+  console.error(`  failed tasks:      ${failedTaskCount}`);
+  console.error("");
+  console.error("Knowledge:");
+  console.error(`  matches:           ${extraction.stats.raw_match_count} raw -> ${deduped.length} deduped (${filtered} filtered/merged)`);
+  console.error(`  clusters:          ${clusters.length} total, ${promoted.length} promoted (threshold ${M1_DEFAULTS.candidate_threshold})`);
+  console.error(`  namespaces:        sources=${draft.sources.length} sections=${draft.sections.length} occurrences=${draft.occurrences.length} entities=${draft.entities.length}`);
+  console.error("");
   console.error(`draft:       ${outPath}`);
-  console.error(`namespaces:  sources=${draft.sources.length} sections=${draft.sections.length} occurrences=${draft.occurrences.length} entities=${draft.entities.length}`);
   if (validation) {
     console.error(
       `validation:  ${validation.status}` +
