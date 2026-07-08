@@ -1,7 +1,7 @@
 import type { ChunkWindow, ExtractionTask } from "../types.js";
 
-// Builds one small slot extraction prompt per (task × chunk) (spec §7).
-// The LLM never sees the full Projection — only compiled task fields.
+// Builds one small slot extraction prompt per (task x chunk) (spec §7).
+// The LLM never sees the full Projection -- only compiled task fields.
 
 export function buildSystemPrompt(): string {
   return [
@@ -9,7 +9,9 @@ export function buildSystemPrompt(): string {
     "You extract skeleton slot matches from ONE text chunk.",
     "You must answer with one JSON object and nothing else.",
     "The only top-level JSON keys allowed are matches and warnings.",
-    "Never use slot names as top-level JSON keys.",
+    "The matches value must be an array of match objects, never strings.",
+    "Never use source headings or slot names as top-level JSON keys.",
+    "Every match object must contain slot, mapped_slot, span_text, confidence, match_class, and reason.",
     "Every span_text must be copied exactly from the chunk.",
     "If no slots match, return exactly {\"matches\":[],\"warnings\":[]}.",
   ].join(" ");
@@ -38,10 +40,22 @@ ${slotLines}
 
 Output contract:
 - Return a single JSON object with exactly two top-level keys: "matches" and "warnings".
-- "matches" MUST be an array. It may be empty.
+- "matches" MUST be an array of match objects. It may be empty.
+- "warnings" MUST be an array.
 - If nothing matches, return exactly: {"matches":[],"warnings":[]}.
+- Do not return source headings as top-level keys, such as {"Observation":"..."} or {"Recommendation":"..."}.
 - Do not return slot names as top-level keys, such as {"evidence_item":[...]}.
+- Do not return strings inside matches, such as {"matches":["01-10"]}.
 - Do not wrap the result in another object such as {"answer":{...}}.
+
+How to convert common source headings:
+- Source heading "Decision question:" -> slot "decision_or_question".
+- Source heading "Observation:" -> slot "evidence_item".
+- Source heading "Evidence:" -> slot "evidence_item".
+- Source heading "Inference:" -> slot "inference_or_rationale".
+- Source heading "Recommendation:" -> slot "recommendation_or_decision".
+- Source heading "Uncertainty:" -> slot "evidence_quality_or_uncertainty".
+- Source heading "Follow-up condition:" -> slot "review_or_update_condition".
 
 Match object rules:
 - slot: one of the slot names listed above.
@@ -62,4 +76,4 @@ CHUNK>>>`;
 }
 
 export const RETRY_SUFFIX =
-  "\n\nYour previous answer did not satisfy the output contract. Answer again with ONLY one JSON object whose top-level keys are matches and warnings. If there are no matches, return exactly {\"matches\":[],\"warnings\":[]}. Do not use slot names as top-level keys.";
+  "\n\nYour previous answer did not satisfy the output contract. Rewrite the same extracted content into ONLY one JSON object with exactly two top-level keys: matches and warnings. Do not invent new text. Do not summarize. Do not use source headings such as Observation, Evidence, Inference, Recommendation, Uncertainty, or Follow-up condition as JSON keys. Convert those headings into match objects inside matches[]. Every matches[] item must be an object with slot, mapped_slot, span_text, confidence, match_class, and reason. Do NOT return matches:[] unless there is truly no matching content in the chunk.";
