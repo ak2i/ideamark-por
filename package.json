@@ -1,6 +1,6 @@
 {
   "name": "ideamark-por",
-  "version": "0.1.0",
+  "version": "0.2.0-dev",
   "private": true,
   "description": "Stateful POR engine for iterative IdeaMark generation",
   "license": "MIT",
@@ -11,15 +11,19 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "tsx src/main.ts",
-    "check": "tsc --noEmit -p tsconfig.json",
+    "check": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.test.json",
+    "test": "node --import tsx --test test/*.test.ts",
     "start": "node dist/main.js"
   },
   "engines": {
     "node": ">=20"
   },
-  "dependencies": {},
+  "dependencies": {
+    "yaml": "^2.9.0"
+  },
   "devDependencies": {
     "@types/node": "^24.0.0",
+    "ideamark-cli": "^0.3.1",
     "tsx": "^4.20.0",
     "typescript": "^5.8.0"
   }

@@ -1,0 +1,29 @@
+# Single-Projection fixture for M1 tests.
+# Subset shape per docs/dev/v0.2.0/por-m1-text-to-ideamark.md §3.
+id: projection://test/observation-to-recommendation/v0
+title: Observation to Recommendation (test fixture)
+domain_hint: research_report
+purpose: Transform observations and evidence into cautious recommendations while preserving uncertainty.
+uses_skeleton_families:
+  - ref: skeleton-family://samples/evidence-supported-decision/v0
+    slot_mapping:
+      decision_or_question: recommendation_question
+      evidence_item: observation_or_measurement
+      evidence_quality_or_uncertainty: uncertainty_or_data_quality
+      inference_or_rationale: interpretation
+      recommendation_or_decision: recommendation
+      review_or_update_condition: monitoring_or_follow_up_condition
+decomposition_guidance:
+  section_strategy: group observation, interpretation, recommendation, and uncertainty
+  entity_focus:
+    - observation_or_measurement
+    - interpretation
+    - recommendation
+retrieval_expectations:
+  primary_match: evidence-supported recommendation
+  expected_outputs:
+    - evidence chain
+    - recommendation note
+evaluation_tests:
+  - test evidence chain reconstruction
+  - test uncertainty visibility

@@ -1,0 +1,240 @@
+Observation block 1.
+Reservoir levels in the northern catchment fell 18 percent below the seasonal median during the observation window. (block 1, item 1)
+Field sensors recorded soil moisture readings that were consistently in the lowest decile for this time of year. (block 1, item 2)
+We interpret the combined readings as an early signal of hydrological stress rather than sensor drift. (block 1, item 3)
+We recommend increasing the sampling interval from weekly to daily for the next two months. (block 1, item 4)
+Sensor coverage in the eastern sub-basin is sparse, so the uncertainty of these estimates remains high. (block 1, item 5)
+The recommendation should be revisited when the new telemetry stations come online in autumn. (block 1, item 6)
+
+Observation block 2.
+Stream turbidity spiked after each of the three storm events logged in March. (block 2, item 1)
+Manual grab samples confirmed elevated suspended sediment concentrations at all four monitoring stations. (block 2, item 2)
+The most plausible interpretation is accelerated bank erosion in the recently cleared corridor. (block 2, item 3)
+A staged revegetation program for the cleared corridor is the recommended intervention. (block 2, item 4)
+Because only one storm season has been observed, confidence in the erosion attribution is moderate at best. (block 2, item 5)
+Follow-up transect surveys after the next storm season should trigger a review of this recommendation. (block 2, item 6)
+
+Observation block 3.
+Groundwater bores show a slow but persistent decline of roughly 0.4 meters per year across the plain. (block 3, item 1)
+Pumping records from irrigation cooperatives indicate extraction grew 9 percent year on year. (block 3, item 2)
+The decline is best explained by extraction outpacing recharge rather than by climatic variation alone. (block 3, item 3)
+We recommend capping new extraction licenses until a full water balance study is completed. (block 3, item 4)
+Recharge estimates rely on a regional model that has not been calibrated with local tracer data. (block 3, item 5)
+The cap should be reassessed once the tracer study delivers calibrated recharge figures. (block 3, item 6)
+
+Observation block 4.
+Reservoir levels in the northern catchment fell 18 percent below the seasonal median during the observation window. (block 4, item 1)
+Field sensors recorded soil moisture readings that were consistently in the lowest decile for this time of year. (block 4, item 2)
+We interpret the combined readings as an early signal of hydrological stress rather than sensor drift. (block 4, item 3)
+We recommend increasing the sampling interval from weekly to daily for the next two months. (block 4, item 4)
+Sensor coverage in the eastern sub-basin is sparse, so the uncertainty of these estimates remains high. (block 4, item 5)
+The recommendation should be revisited when the new telemetry stations come online in autumn. (block 4, item 6)
+
+Observation block 5.
+Stream turbidity spiked after each of the three storm events logged in March. (block 5, item 1)
+Manual grab samples confirmed elevated suspended sediment concentrations at all four monitoring stations. (block 5, item 2)
+The most plausible interpretation is accelerated bank erosion in the recently cleared corridor. (block 5, item 3)
+A staged revegetation program for the cleared corridor is the recommended intervention. (block 5, item 4)
+Because only one storm season has been observed, confidence in the erosion attribution is moderate at best. (block 5, item 5)
+Follow-up transect surveys after the next storm season should trigger a review of this recommendation. (block 5, item 6)
+
+Observation block 6.
+Groundwater bores show a slow but persistent decline of roughly 0.4 meters per year across the plain. (block 6, item 1)
+Pumping records from irrigation cooperatives indicate extraction grew 9 percent year on year. (block 6, item 2)
+The decline is best explained by extraction outpacing recharge rather than by climatic variation alone. (block 6, item 3)
+We recommend capping new extraction licenses until a full water balance study is completed. (block 6, item 4)
+Recharge estimates rely on a regional model that has not been calibrated with local tracer data. (block 6, item 5)
+The cap should be reassessed once the tracer study delivers calibrated recharge figures. (block 6, item 6)
+
+Observation block 7.
+Reservoir levels in the northern catchment fell 18 percent below the seasonal median during the observation window. (block 7, item 1)
+Field sensors recorded soil moisture readings that were consistently in the lowest decile for this time of year. (block 7, item 2)
+We interpret the combined readings as an early signal of hydrological stress rather than sensor drift. (block 7, item 3)
+We recommend increasing the sampling interval from weekly to daily for the next two months. (block 7, item 4)
+Sensor coverage in the eastern sub-basin is sparse, so the uncertainty of these estimates remains high. (block 7, item 5)
+The recommendation should be revisited when the new telemetry stations come online in autumn. (block 7, item 6)
+
+Observation block 8.
+Stream turbidity spiked after each of the three storm events logged in March. (block 8, item 1)
+Manual grab samples confirmed elevated suspended sediment concentrations at all four monitoring stations. (block 8, item 2)
+The most plausible interpretation is accelerated bank erosion in the recently cleared corridor. (block 8, item 3)
+A staged revegetation program for the cleared corridor is the recommended intervention. (block 8, item 4)
+Because only one storm season has been observed, confidence in the erosion attribution is moderate at best. (block 8, item 5)
+Follow-up transect surveys after the next storm season should trigger a review of this recommendation. (block 8, item 6)
+
+Observation block 9.
+Groundwater bores show a slow but persistent decline of roughly 0.4 meters per year across the plain. (block 9, item 1)
+Pumping records from irrigation cooperatives indicate extraction grew 9 percent year on year. (block 9, item 2)
+The decline is best explained by extraction outpacing recharge rather than by climatic variation alone. (block 9, item 3)
+We recommend capping new extraction licenses until a full water balance study is completed. (block 9, item 4)
+Recharge estimates rely on a regional model that has not been calibrated with local tracer data. (block 9, item 5)
+The cap should be reassessed once the tracer study delivers calibrated recharge figures. (block 9, item 6)
+
+Observation block 10.
+Reservoir levels in the northern catchment fell 18 percent below the seasonal median during the observation window. (block 10, item 1)
+Field sensors recorded soil moisture readings that were consistently in the lowest decile for this time of year. (block 10, item 2)
+We interpret the combined readings as an early signal of hydrological stress rather than sensor drift. (block 10, item 3)
+We recommend increasing the sampling interval from weekly to daily for the next two months. (block 10, item 4)
+Sensor coverage in the eastern sub-basin is sparse, so the uncertainty of these estimates remains high. (block 10, item 5)
+The recommendation should be revisited when the new telemetry stations come online in autumn. (block 10, item 6)
+
+Observation block 11.
+Stream turbidity spiked after each of the three storm events logged in March. (block 11, item 1)
+Manual grab samples confirmed elevated suspended sediment concentrations at all four monitoring stations. (block 11, item 2)
+The most plausible interpretation is accelerated bank erosion in the recently cleared corridor. (block 11, item 3)
+A staged revegetation program for the cleared corridor is the recommended intervention. (block 11, item 4)
+Because only one storm season has been observed, confidence in the erosion attribution is moderate at best. (block 11, item 5)
+Follow-up transect surveys after the next storm season should trigger a review of this recommendation. (block 11, item 6)
+
+Observation block 12.
+Groundwater bores show a slow but persistent decline of roughly 0.4 meters per year across the plain. (block 12, item 1)
+Pumping records from irrigation cooperatives indicate extraction grew 9 percent year on year. (block 12, item 2)
+The decline is best explained by extraction outpacing recharge rather than by climatic variation alone. (block 12, item 3)
+We recommend capping new extraction licenses until a full water balance study is completed. (block 12, item 4)
+Recharge estimates rely on a regional model that has not been calibrated with local tracer data. (block 12, item 5)
+The cap should be reassessed once the tracer study delivers calibrated recharge figures. (block 12, item 6)
+
+Observation block 13.
+Reservoir levels in the northern catchment fell 18 percent below the seasonal median during the observation window. (block 13, item 1)
+Field sensors recorded soil moisture readings that were consistently in the lowest decile for this time of year. (block 13, item 2)
+We interpret the combined readings as an early signal of hydrological stress rather than sensor drift. (block 13, item 3)
+We recommend increasing the sampling interval from weekly to daily for the next two months. (block 13, item 4)
+Sensor coverage in the eastern sub-basin is sparse, so the uncertainty of these estimates remains high. (block 13, item 5)
+The recommendation should be revisited when the new telemetry stations come online in autumn. (block 13, item 6)
+
+Observation block 14.
+Stream turbidity spiked after each of the three storm events logged in March. (block 14, item 1)
+Manual grab samples confirmed elevated suspended sediment concentrations at all four monitoring stations. (block 14, item 2)
+The most plausible interpretation is accelerated bank erosion in the recently cleared corridor. (block 14, item 3)
+A staged revegetation program for the cleared corridor is the recommended intervention. (block 14, item 4)
+Because only one storm season has been observed, confidence in the erosion attribution is moderate at best. (block 14, item 5)
+Follow-up transect surveys after the next storm season should trigger a review of this recommendation. (block 14, item 6)
+
+Observation block 15.
+Groundwater bores show a slow but persistent decline of roughly 0.4 meters per year across the plain. (block 15, item 1)
+Pumping records from irrigation cooperatives indicate extraction grew 9 percent year on year. (block 15, item 2)
+The decline is best explained by extraction outpacing recharge rather than by climatic variation alone. (block 15, item 3)
+We recommend capping new extraction licenses until a full water balance study is completed. (block 15, item 4)
+Recharge estimates rely on a regional model that has not been calibrated with local tracer data. (block 15, item 5)
+The cap should be reassessed once the tracer study delivers calibrated recharge figures. (block 15, item 6)
+
+Observation block 16.
+Reservoir levels in the northern catchment fell 18 percent below the seasonal median during the observation window. (block 16, item 1)
+Field sensors recorded soil moisture readings that were consistently in the lowest decile for this time of year. (block 16, item 2)
+We interpret the combined readings as an early signal of hydrological stress rather than sensor drift. (block 16, item 3)
+We recommend increasing the sampling interval from weekly to daily for the next two months. (block 16, item 4)
+Sensor coverage in the eastern sub-basin is sparse, so the uncertainty of these estimates remains high. (block 16, item 5)
+The recommendation should be revisited when the new telemetry stations come online in autumn. (block 16, item 6)
+
+Observation block 17.
+Stream turbidity spiked after each of the three storm events logged in March. (block 17, item 1)
+Manual grab samples confirmed elevated suspended sediment concentrations at all four monitoring stations. (block 17, item 2)
+The most plausible interpretation is accelerated bank erosion in the recently cleared corridor. (block 17, item 3)
+A staged revegetation program for the cleared corridor is the recommended intervention. (block 17, item 4)
+Because only one storm season has been observed, confidence in the erosion attribution is moderate at best. (block 17, item 5)
+Follow-up transect surveys after the next storm season should trigger a review of this recommendation. (block 17, item 6)
+
+Observation block 18.
+Groundwater bores show a slow but persistent decline of roughly 0.4 meters per year across the plain. (block 18, item 1)
+Pumping records from irrigation cooperatives indicate extraction grew 9 percent year on year. (block 18, item 2)
+The decline is best explained by extraction outpacing recharge rather than by climatic variation alone. (block 18, item 3)
+We recommend capping new extraction licenses until a full water balance study is completed. (block 18, item 4)
+Recharge estimates rely on a regional model that has not been calibrated with local tracer data. (block 18, item 5)
+The cap should be reassessed once the tracer study delivers calibrated recharge figures. (block 18, item 6)
+
+Observation block 19.
+Reservoir levels in the northern catchment fell 18 percent below the seasonal median during the observation window. (block 19, item 1)
+Field sensors recorded soil moisture readings that were consistently in the lowest decile for this time of year. (block 19, item 2)
+We interpret the combined readings as an early signal of hydrological stress rather than sensor drift. (block 19, item 3)
+We recommend increasing the sampling interval from weekly to daily for the next two months. (block 19, item 4)
+Sensor coverage in the eastern sub-basin is sparse, so the uncertainty of these estimates remains high. (block 19, item 5)
+The recommendation should be revisited when the new telemetry stations come online in autumn. (block 19, item 6)
+
+Observation block 20.
+Stream turbidity spiked after each of the three storm events logged in March. (block 20, item 1)
+Manual grab samples confirmed elevated suspended sediment concentrations at all four monitoring stations. (block 20, item 2)
+The most plausible interpretation is accelerated bank erosion in the recently cleared corridor. (block 20, item 3)
+A staged revegetation program for the cleared corridor is the recommended intervention. (block 20, item 4)
+Because only one storm season has been observed, confidence in the erosion attribution is moderate at best. (block 20, item 5)
+Follow-up transect surveys after the next storm season should trigger a review of this recommendation. (block 20, item 6)
+
+Observation block 21.
+Groundwater bores show a slow but persistent decline of roughly 0.4 meters per year across the plain. (block 21, item 1)
+Pumping records from irrigation cooperatives indicate extraction grew 9 percent year on year. (block 21, item 2)
+The decline is best explained by extraction outpacing recharge rather than by climatic variation alone. (block 21, item 3)
+We recommend capping new extraction licenses until a full water balance study is completed. (block 21, item 4)
+Recharge estimates rely on a regional model that has not been calibrated with local tracer data. (block 21, item 5)
+The cap should be reassessed once the tracer study delivers calibrated recharge figures. (block 21, item 6)
+
+Observation block 22.
+Reservoir levels in the northern catchment fell 18 percent below the seasonal median during the observation window. (block 22, item 1)
+Field sensors recorded soil moisture readings that were consistently in the lowest decile for this time of year. (block 22, item 2)
+We interpret the combined readings as an early signal of hydrological stress rather than sensor drift. (block 22, item 3)
+We recommend increasing the sampling interval from weekly to daily for the next two months. (block 22, item 4)
+Sensor coverage in the eastern sub-basin is sparse, so the uncertainty of these estimates remains high. (block 22, item 5)
+The recommendation should be revisited when the new telemetry stations come online in autumn. (block 22, item 6)
+
+Observation block 23.
+Stream turbidity spiked after each of the three storm events logged in March. (block 23, item 1)
+Manual grab samples confirmed elevated suspended sediment concentrations at all four monitoring stations. (block 23, item 2)
+The most plausible interpretation is accelerated bank erosion in the recently cleared corridor. (block 23, item 3)
+A staged revegetation program for the cleared corridor is the recommended intervention. (block 23, item 4)
+Because only one storm season has been observed, confidence in the erosion attribution is moderate at best. (block 23, item 5)
+Follow-up transect surveys after the next storm season should trigger a review of this recommendation. (block 23, item 6)
+
+Observation block 24.
+Groundwater bores show a slow but persistent decline of roughly 0.4 meters per year across the plain. (block 24, item 1)
+Pumping records from irrigation cooperatives indicate extraction grew 9 percent year on year. (block 24, item 2)
+The decline is best explained by extraction outpacing recharge rather than by climatic variation alone. (block 24, item 3)
+We recommend capping new extraction licenses until a full water balance study is completed. (block 24, item 4)
+Recharge estimates rely on a regional model that has not been calibrated with local tracer data. (block 24, item 5)
+The cap should be reassessed once the tracer study delivers calibrated recharge figures. (block 24, item 6)
+
+Observation block 25.
+Reservoir levels in the northern catchment fell 18 percent below the seasonal median during the observation window. (block 25, item 1)
+Field sensors recorded soil moisture readings that were consistently in the lowest decile for this time of year. (block 25, item 2)
+We interpret the combined readings as an early signal of hydrological stress rather than sensor drift. (block 25, item 3)
+We recommend increasing the sampling interval from weekly to daily for the next two months. (block 25, item 4)
+Sensor coverage in the eastern sub-basin is sparse, so the uncertainty of these estimates remains high. (block 25, item 5)
+The recommendation should be revisited when the new telemetry stations come online in autumn. (block 25, item 6)
+
+Observation block 26.
+Stream turbidity spiked after each of the three storm events logged in March. (block 26, item 1)
+Manual grab samples confirmed elevated suspended sediment concentrations at all four monitoring stations. (block 26, item 2)
+The most plausible interpretation is accelerated bank erosion in the recently cleared corridor. (block 26, item 3)
+A staged revegetation program for the cleared corridor is the recommended intervention. (block 26, item 4)
+Because only one storm season has been observed, confidence in the erosion attribution is moderate at best. (block 26, item 5)
+Follow-up transect surveys after the next storm season should trigger a review of this recommendation. (block 26, item 6)
+
+Observation block 27.
+Groundwater bores show a slow but persistent decline of roughly 0.4 meters per year across the plain. (block 27, item 1)
+Pumping records from irrigation cooperatives indicate extraction grew 9 percent year on year. (block 27, item 2)
+The decline is best explained by extraction outpacing recharge rather than by climatic variation alone. (block 27, item 3)
+We recommend capping new extraction licenses until a full water balance study is completed. (block 27, item 4)
+Recharge estimates rely on a regional model that has not been calibrated with local tracer data. (block 27, item 5)
+The cap should be reassessed once the tracer study delivers calibrated recharge figures. (block 27, item 6)
+
+Observation block 28.
+Reservoir levels in the northern catchment fell 18 percent below the seasonal median during the observation window. (block 28, item 1)
+Field sensors recorded soil moisture readings that were consistently in the lowest decile for this time of year. (block 28, item 2)
+We interpret the combined readings as an early signal of hydrological stress rather than sensor drift. (block 28, item 3)
+We recommend increasing the sampling interval from weekly to daily for the next two months. (block 28, item 4)
+Sensor coverage in the eastern sub-basin is sparse, so the uncertainty of these estimates remains high. (block 28, item 5)
+The recommendation should be revisited when the new telemetry stations come online in autumn. (block 28, item 6)
+
+Observation block 29.
+Stream turbidity spiked after each of the three storm events logged in March. (block 29, item 1)
+Manual grab samples confirmed elevated suspended sediment concentrations at all four monitoring stations. (block 29, item 2)
+The most plausible interpretation is accelerated bank erosion in the recently cleared corridor. (block 29, item 3)
+A staged revegetation program for the cleared corridor is the recommended intervention. (block 29, item 4)
+Because only one storm season has been observed, confidence in the erosion attribution is moderate at best. (block 29, item 5)
+Follow-up transect surveys after the next storm season should trigger a review of this recommendation. (block 29, item 6)
+
+Observation block 30.
+Groundwater bores show a slow but persistent decline of roughly 0.4 meters per year across the plain. (block 30, item 1)
+Pumping records from irrigation cooperatives indicate extraction grew 9 percent year on year. (block 30, item 2)
+The decline is best explained by extraction outpacing recharge rather than by climatic variation alone. (block 30, item 3)
+We recommend capping new extraction licenses until a full water balance study is completed. (block 30, item 4)
+Recharge estimates rely on a regional model that has not been calibrated with local tracer data. (block 30, item 5)
+The cap should be reassessed once the tracer study delivers calibrated recharge figures. (block 30, item 6)
+
