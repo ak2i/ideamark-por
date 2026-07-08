@@ -20,6 +20,14 @@ export interface ExtractionStats {
   retry_count: number;
   failed_calls: number;
   raw_match_count: number;
+  matched_task_count: number;
+  no_hit_task_count: number;
+  matched_chunk_count: number;
+  no_hit_chunk_count: number;
+  schema_error_count: number;
+  retry_success_count: number;
+  retry_failed_count: number;
+  anchoring_warning_count: number;
 }
 
 export interface ExtractionOutput {
@@ -60,6 +68,14 @@ export async function runExtraction(
     retry_count: 0,
     failed_calls: 0,
     raw_match_count: 0,
+    matched_task_count: 0,
+    no_hit_task_count: 0,
+    matched_chunk_count: 0,
+    no_hit_chunk_count: 0,
+    schema_error_count: 0,
+    retry_success_count: 0,
+    retry_failed_count: 0,
+    anchoring_warning_count: 0,
   };
 
   for (const chunk of chunks) {
@@ -75,6 +91,7 @@ export async function runExtraction(
           result = guardLlmOutput(rawText, task, chunk);
           rawAttempts.push(rawAttempt(provider, task, chunk, 1, prompt, rawText, true));
         } catch (guardErr) {
+          stats.schema_error_count += 1;
           rawAttempts.push(
             rawAttempt(provider, task, chunk, 1, prompt, rawText, false, guardErr),
           );
@@ -84,10 +101,13 @@ export async function runExtraction(
           const retryText = await provider.extract(task, chunk, retryPrompt);
           try {
             result = guardLlmOutput(retryText, task, chunk);
+            stats.retry_success_count += 1;
             rawAttempts.push(
               rawAttempt(provider, task, chunk, 2, retryPrompt, retryText, true),
             );
           } catch (retryGuardErr) {
+            stats.schema_error_count += 1;
+            stats.retry_failed_count += 1;
             rawAttempts.push(
               rawAttempt(
                 provider,
@@ -106,7 +126,9 @@ export async function runExtraction(
       } catch (err) {
         stats.failed_calls += 1;
         if (!rawAttempts.some((r) => r.task_id === task.task_id && r.attempt >= 1)) {
-          rawAttempts.push(rawAttempt(provider, task, chunk, 1, buildUserPrompt(task, chunk), null, false, err));
+          rawAttempts.push(
+            rawAttempt(provider, task, chunk, 1, buildUserPrompt(task, chunk), null, false, err),
+          );
         }
         result = {
           task_id: task.task_id,
@@ -125,6 +147,14 @@ export async function runExtraction(
       }
 
       stats.raw_match_count += result.matches.length;
+      if (result.matches.length > 0) {
+        stats.matched_task_count += 1;
+      } else if (!result.warnings.some((w) => w.code === "extraction_failed")) {
+        stats.no_hit_task_count += 1;
+      }
+      stats.anchoring_warning_count += result.warnings.filter(
+        (w) => w.code === "span_not_in_chunk",
+      ).length;
       chunkResults.push(result);
       results.push(result);
 
@@ -145,10 +175,16 @@ export async function runExtraction(
         });
       }
     }
+    const chunkMatchCount = chunkResults.reduce((n, r) => n + r.matches.length, 0);
+    if (chunkMatchCount > 0) {
+      stats.matched_chunk_count += 1;
+    } else if (!chunkResults.some((r) => r.warnings.some((w) => w.code === "extraction_failed"))) {
+      stats.no_hit_chunk_count += 1;
+    }
     session.writeRawResponses(chunk.chunk_id, rawAttempts);
     session.writeMatches(chunk.chunk_id, chunkResults);
     log(
-      `chunk ${chunk.index + 1}/${chunks.length} (${chunk.chunk_id}): ${chunkResults.reduce((n, r) => n + r.matches.length, 0)} matches`,
+      `chunk ${chunk.index + 1}/${chunks.length} (${chunk.chunk_id}): ${chunkMatchCount} matches`,
     );
   }
 
