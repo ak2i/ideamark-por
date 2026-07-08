@@ -17,6 +17,162 @@ However, IdeaMark Core v1.2.0 changes the boundary conditions enough that POR ne
 
 Therefore v0.2.0 should reuse v0.1.0's conceptual machinery, but realign its emitted artifacts and internal terminology with IdeaMark Core v1.2.0.
 
+## Milestone 1 — Text-to-IdeaMark POR prototype
+
+The first milestone should be a practical test milestone, not a complete POR platform.
+
+Goal:
+
+> Given one large text source, one Projection or Projection Set, the built-in default Skeleton Family Library, and a local LLM, POR can extract skeleton slot matches from overlapping chunks, mechanically assemble a rough IdeaMark Core draft, run `ideamark-cli validate`, and produce a reviewable IdeaMark Document or diagnostics.
+
+### M1 scope
+
+M1 includes:
+
+- one large plain text input file;
+- the `text` Source Adapter only;
+- one Projection file or one Projection selected from a Projection library;
+- built-in default Skeleton Families;
+- Projection-driven family selection and slot mapping;
+- fixed default chunk/window settings;
+- local LLM skeleton slot extraction;
+- simple clustering and threshold filtering;
+- mechanical Core draft assembly;
+- `ideamark-cli validate` handoff;
+- storage of diagnostics and local extraction evidence.
+
+M1 does not include:
+
+- PDF, GitHub repository, HTML, audio, or video adapters;
+- multi-source batch manifests;
+- advanced graph database optimization;
+- high-quality final document polishing;
+- global document rewrite by LLM;
+- complete Projection language design;
+- automatic support for all future Skeleton Family variants.
+
+### M1 default command shape
+
+```bash
+ideamark-por generate \
+  --source ./large-source.txt \
+  --source-adapter text \
+  --projection ./projection.yaml \
+  --skeleton-family default \
+  --llm-provider local \
+  --out ./generated.ideamark.yaml
+```
+
+The command should be allowed to create a session directory so intermediate slot matches, partial skeletons, diagnostics, and run metadata are inspectable.
+
+### M1 fixed defaults
+
+M1 can use fixed defaults that are later made configurable:
+
+- `chunk_size`: approximately 2,000 to 4,000 tokens or equivalent character range;
+- `chunk_overlap`: 20% to 30%;
+- `candidate_threshold`: provisional and tuned during tests;
+- `min_match_confidence`: provisional and tuned during tests;
+- `dedup_strategy`: same family + same mapped slot + overlapping or nearby span;
+- `section_strategy`: use Projection `decomposition_guidance.section_strategy` when available, otherwise group by completed skeleton match / source window;
+- `entity_focus`: use Projection `decomposition_guidance.entity_focus` as a ranking and filtering hint when available.
+
+### M1 Projection subset
+
+The sample Projection Library shape is richer than M1 needs. For M1, POR should read only the subset necessary for practical extraction.
+
+Required or useful M1 fields:
+
+- `id`
+- `title`
+- `domain_hint`
+- `purpose`
+- `uses_skeleton_families`
+- `uses_skeleton_families[].ref`
+- `uses_skeleton_families[].slot_mapping`
+- `decomposition_guidance.section_strategy`
+- `decomposition_guidance.entity_focus`
+- `retrieval_expectations.primary_match`
+- `retrieval_expectations.expected_outputs`
+- `evaluation_tests` as non-blocking notes
+
+Fields such as `reconstruction_guidance` and full `evaluation_tests` should be preserved as metadata or notes, but M1 does not need to implement their full semantics.
+
+The Projection Runtime should combine:
+
+```text
+Skeleton Family canonical_slots
+  + Projection uses_skeleton_families[].slot_mapping
+  + Projection domain_hint
+  + Projection decomposition_guidance.entity_focus
+  -> skeleton slot extraction tasks
+```
+
+### M1 Local LLM output schema
+
+The local LLM should not generate an IdeaMark Document.
+
+It should only answer small skeleton slot extraction tasks for a single chunk/window and a small set of family/slot targets.
+
+Initial JSON output schema:
+
+```json
+{
+  "task_id": "string",
+  "source_id": "string",
+  "chunk_id": "string",
+  "projection_id": "string",
+  "family_id": "string",
+  "matches": [
+    {
+      "slot": "string",
+      "mapped_slot": "string",
+      "span_text": "string",
+      "start_offset": 0,
+      "end_offset": 0,
+      "confidence": 0.0,
+      "match_class": "compatible|partial|uncertain|negative",
+      "reason": "string"
+    }
+  ],
+  "warnings": [
+    {
+      "code": "string",
+      "message": "string"
+    }
+  ]
+}
+```
+
+M1 may omit offsets when the local LLM cannot reliably return them, but POR should preserve chunk id and source text range so later deterministic anchoring remains possible.
+
+### M1 Candidate assembly rule
+
+M1 candidate assembly can be intentionally simple:
+
+1. Collect slot matches from all overlapping chunks.
+2. Deduplicate matches by source overlap, family, mapped slot, and text similarity.
+3. Cluster compatible matches under the same family instance when they occur in nearby source windows or are linked by common slot expectations.
+4. Compute a simple candidate score from confidence, duplicate support, slot coverage, and Projection focus.
+5. Promote clusters above threshold to provisional reusable material candidates and role-bearing placement candidates.
+6. Assemble rough Sections from source windows around promoted clusters.
+7. Emit Core draft namespaces mechanically.
+8. Run `ideamark-cli validate`.
+9. Store diagnostics as review signals and, where possible, run localized LLM repair only for the failing field or candidate.
+
+### M1 success criteria
+
+M1 succeeds when:
+
+- POR can process at least a few large text files without manual chunk preparation;
+- POR can load a sample Projection using `uses_skeleton_families` and `slot_mapping`;
+- local LLM calls remain small and slot-focused;
+- extracted matches can be inspected before document assembly;
+- rough `sources`, `sections`, `occurrences`, and `entities` are emitted;
+- `ideamark-cli validate` runs on the emitted draft;
+- diagnostics are stored and mapped back to source/candidate/session state;
+- the generated document is good enough for human review and iterative improvement, even if not yet high-quality.
+
 ## Reuse vs. reset assessment
 
 | Area | v0.1.0 value | v1.2.0 impact | v0.2.0 action |
@@ -68,85 +224,13 @@ Skeleton Families provide default reusable structural families. POR should ship 
 
 Projection input should be provided at execution time. A POR run may use one Projection or multiple Projections. The Projection Set does not replace Skeleton Families. Instead, it selects families, gives domain hints, tunes slot directionality, narrows match classes, defines ignored material, and sets review priorities.
 
-Original Source input should be adapter-normalized. POR should not assume the source is a single text file. The first implementation can support a text adapter, but the boundary should be extensible to later adapters for:
+Original Source input should be adapter-normalized. POR should not assume the source is a single text file. The first implementation can support a text adapter, but the boundary should be extensible to later adapters for plain text files, Markdown/documentation trees, GitHub repositories, PDFs, HTML/web captures, transcripts, video/audio sources after transcription, and mixed source bundles.
 
-- plain text files;
-- Markdown / documentation trees;
-- GitHub repositories containing source code and documentation;
-- PDFs;
-- HTML / web captures;
-- transcripts;
-- video or audio sources after transcription and segmentation;
-- mixed source bundles.
-
-The command should be usable both directly by humans and indirectly by higher-level batch applications. A future app should be able to collect Original Sources from a list, choose Projection Sets, call POR repeatedly, and store generated IdeaMark Documents without reimplementing POR internals.
-
-A possible command shape is:
-
-```bash
-ideamark-por generate \
-  --source ./source.txt \
-  --source-adapter text \
-  --projection ./projection.yaml \
-  --skeleton-family default \
-  --out ./out.ideamark.yaml
-```
-
-For future batch use, POR should also support manifest-driven execution:
-
-```bash
-ideamark-por generate \
-  --manifest ./por-batch-manifest.yaml \
-  --out-dir ./generated
-```
-
-The manifest format can later represent multiple sources, multiple Projection Sets, adapter options, provider options, and output routing.
-
-### Skeleton graph for context-force analysis
-
-The skeleton graph should be introduced as a POR internal analysis graph.
-
-Its purpose is to make context force observable before POR commits to Core-boundary `sections`, `occurrences`, and `entities`.
-
-The skeleton graph is not the final IdeaMark graph. It is a provisional, force-oriented structure used to answer questions such as:
-
-- which source fragments exert pressure toward the same reusable material candidate;
-- which role-bearing placements are competing for the same source material;
-- which Projection constraints are shaping entity boundaries;
-- which local source windows are stable enough to become Core Sections;
-- which later fragments retroactively change the interpretation of earlier placements;
-- which candidate structures are under-supported, over-broad, or internally conflicted.
-
-Recommended skeleton graph node types:
-
-- `source_fragment_node`: chunk or fragment derived from an Original Source;
-- `context_force_node`: an observed interpretive pressure such as problem framing, evidence pressure, contrast, dependency, temporal ordering, or reuse pressure;
-- `projection_constraint_node`: a constraint or preference loaded from Projection/profile guidance;
-- `reusable_material_candidate_node`: a pre-Core Entity candidate;
-- `placement_candidate_node`: a pre-Core Occurrence candidate;
-- `source_window_candidate_node`: a pre-Core Section candidate;
-- `review_signal_node`: a diagnostic, conflict, uncertainty, or human review marker.
-
-Recommended edge types:
-
-- `supports_candidate`
-- `competes_with`
-- `refines_boundary`
-- `requires_context`
-- `anchors_to_source`
-- `belongs_to_window`
-- `role_pressure`
-- `projection_pressure`
-- `retroactively_reinterprets`
-- `needs_review`
-
-The key design point is that context force should be analyzed on this graph before producing Core objects. Core-boundary output should receive only stabilized results: Entity material, Occurrence placement, Section windows, anchors, rationale, status, and confidence. The raw graph may remain in session storage or be emitted as optional diagnostics / evidence, but it must not become a required Core namespace.
+The command should be usable both directly by humans and indirectly by higher-level batch applications.
 
 ### Projection Runtime and skeleton-key matching
 
-POR should not send the entire Projection into every chunk-level LLM prompt. That is too complex, unstable, and expensive for large-source iteration.
-
-Instead, the Projection Runtime should compile Projection guidance into a smaller set of executable skeleton graph matching keys.
+POR should not send the entire Projection into every chunk-level LLM prompt. Instead, the Projection Runtime should compile Projection guidance into a smaller set of executable skeleton graph matching keys.
 
 The intended pipeline is:
 
@@ -173,16 +257,6 @@ It should perform iterative processing over overlapping chunks of the Original S
 6. When enough support accumulates, partial structures can become candidate nodes or candidate edges.
 7. Candidate structures remain provisional until stabilization, review, validation, or freeze policy promotes them toward Core-boundary output.
 
-The skeleton graph therefore acts like a classification key, not merely a generated graph. It lets POR ask:
-
-- does this chunk contain material that fits any Projection-derived skeleton pattern;
-- does this chunk complete or strengthen an unfinished partial skeleton from a prior chunk;
-- does this chunk conflict with a previously inferred skeleton fragment;
-- does this chunk suggest that an existing candidate boundary is too narrow or too broad;
-- does this chunk create evidence for a new source window, role-bearing placement, or reusable material candidate.
-
-This design preserves the main value of Projection while reducing prompt complexity. Projection is executed by the Projection Runtime as graph keys, matching rules, and state transitions. The LLM receives narrower prompts that ask it to inspect specific chunk material, explain ambiguous matches, propose repairs, or interpret only the relevant partial graph context.
-
 Recommended compiled key types:
 
 - `structural_key`: expected graph shape, such as problem-evidence-measure, cause-effect, claim-support, or prerequisite-action.
@@ -201,13 +275,9 @@ Recommended partial state types:
 - `stale_partial`: a partial match that has not received support after enough later windows.
 - `completed_match`: a partial structure that now has sufficient support to become a candidate.
 
-This should be treated as the central reason to use POR instead of one-shot LLM generation: POR can scan large sources through Projection-derived skeleton keys while carrying forward incomplete structures across overlapping windows.
-
 ### Original Source adapters
 
 POR should normalize all inputs through Source Adapters before chunking, matching, or LLM extraction.
-
-A Source Adapter is responsible for converting an input source into adapter-neutral source records and fragments. It should preserve enough anchors for later Core output and review.
 
 The first required adapter should be `text`.
 
@@ -231,26 +301,7 @@ Original Source
   -> source_fragment_node
 ```
 
-Adapter output should include:
-
-- `source_id`
-- `source_uri`
-- `source_media_type`
-- `source_adapter`
-- `source_unit_id`
-- `text_or_transcript_payload` when available
-- anchors such as path, line range, character range, page range, timestamp range, or repository object reference
-- extraction metadata and warnings
-
-Future adapter examples:
-
-- `github_repo`: clone or read a repository, select files, classify code/docs, and emit file-based source units.
-- `pdf`: extract page text, page anchors, and optionally figure/table placeholders.
-- `html`: extract main text, headings, links, and DOM-ish anchors.
-- `transcript`: ingest precomputed transcript segments with timestamps.
-- `video`: delegate transcription/scene extraction, then emit transcript and media-time anchors.
-
-This makes POR useful as a foundation for later applications that gather Original Source sets automatically, then call POR as the generation engine.
+Adapter output should include `source_id`, `source_uri`, `source_media_type`, `source_adapter`, `source_unit_id`, text or transcript payload when available, anchors, extraction metadata, and warnings.
 
 ### Using npm-distributed `ideamark-cli`
 
@@ -262,8 +313,6 @@ npm i ideamark-cli
 
 POR should then invoke the installed command surface instead of importing unstable internal modules.
 
-The exact binary name should be resolved by configuration or package metadata. The planning assumption is that POR can call the installed command, whether the executable is exposed as `ideamark`, `ideamark-cli`, or another declared bin name.
-
 Required command interactions:
 
 - `describe capabilities --format json`: discover supported commands, topics, formats, options, and language/routing features.
@@ -272,14 +321,6 @@ Required command interactions:
 - `validate --format ndjson|json <input>`: validate draft exports and collect diagnostics.
 
 POR should cache `describe` results per CLI version and document spec version. Cache invalidation should occur when the installed CLI version changes, when `describe capabilities` changes, or when the user forces refresh.
-
-Design constraints:
-
-- POR must not duplicate canonical validation rules from `ideamark-cli`.
-- POR may perform early local checks, but final document validity belongs to `ideamark-cli`.
-- POR should preserve the full validation diagnostics in session state.
-- POR should convert diagnostics into review tasks, regeneration hints, or skeleton graph review signals.
-- POR should keep command execution deterministic and auditable by recording command, version, input file hash, exit code, and diagnostic summary.
 
 ### Local and cloud LLM execution
 
@@ -301,41 +342,7 @@ type LlmTaskKind =
 type LlmEndpointKind = "local" | "cloud" | "mock";
 ```
 
-The POR engine should route tasks to a provider registry:
-
-- Local LLMs: useful for private source material, low-cost iteration, offline work, and repeatable development.
-- Cloud LLMs: useful for stronger reasoning, larger context windows, multimodal support, or difficult repair planning.
-- Mock/deterministic providers: useful for tests, regression fixtures, CI, and golden sample evaluation.
-
-Provider configuration should include:
-
-- endpoint kind and provider name;
-- model identifier;
-- context length / token limits;
-- structured-output support;
-- temperature and reproducibility settings;
-- privacy classification allowed for the provider;
-- timeout and retry policy;
-- cost / quota budget when relevant.
-
-The LLM should remain advisory. It may extract skeleton slots from local chunks, propose context forces, skeleton graph nodes, candidate boundaries, role assignments, or repair plans, but the POR engine owns session state, scoring, freeze policy, document assembly, and export decisions.
-
-### Additional required issues
-
-The following topics should be treated as first-class v0.2.0 planning items:
-
-1. Session storage shape: JSON files are faster for early iteration, but SQLite is likely better once skeleton graph queries, diagnostic history, and retroactive reinterpretation are needed.
-2. Skeleton graph query model: define minimum graph queries needed before choosing a graph database or custom tables.
-3. CLI compatibility matrix: record which `ideamark-cli` versions are compatible with POR v0.2.0 and which Core spec versions they describe / validate.
-4. Prompt construction pipeline: prompts should be built from Projection/profile hints, `describe ai-authoring`, source fragments, and current skeleton graph state.
-5. Diagnostic feedback loop: validation diagnostics should become structured POR review signals, not just console output.
-6. Privacy and provider policy: local/cloud LLM routing must respect source sensitivity and user configuration.
-7. Evaluation fixtures: define small golden sources where expected skeleton graph and Core draft behavior can be regression-tested.
-8. Failure modes: handle missing CLI, incompatible CLI, unavailable LLM endpoint, malformed LLM output, partial validation output, and interrupted sessions.
-9. Projection Runtime compilation: define how Projection is converted into skeleton graph keys, matching rules, gap expectations, and negative routing rules.
-10. Partial-match lifecycle: define how unfinished skeleton fragments are created, refreshed, completed, expired, merged, split, or sent to review.
-11. Source adapter contract: define what every adapter must emit so POR can process text, repositories, PDFs, transcripts, and future media uniformly.
-12. Batch manifest contract: define how higher-level applications can provide lists of sources, Projection Sets, adapter settings, output locations, and provider settings.
+The LLM should remain advisory. For M1, local LLM usage should focus on `skeleton_slot_extraction` and limited localized repair only.
 
 ## Core boundary principles
 
@@ -348,14 +355,10 @@ POR may store and update:
 - source ingestion state;
 - source adapter metadata, source records, source units, anchors, and adapter warnings;
 - chunking and scheduling state;
-- context-force hypotheses;
 - Skeleton Family registry state and selected family set;
 - Projection Runtime outputs, skeleton graph keys, and matching rules;
 - skeleton graph nodes, edges, snapshots, partial matches, open slots, and graph query results;
-- retroactive reinterpretation history;
-- force traces and force clusters;
 - candidate scores;
-- plastic / frozen state;
 - review queues;
 - LLM prompt plans, provider selections, and model outputs;
 - `ideamark-cli` describe cache, validation diagnostics, command metadata, and retry metadata.
@@ -376,8 +379,6 @@ POR-specific state may be preserved only through declared extensions, companion 
 
 ## v0.2.0 conceptual model
 
-POR v0.2.0 should distinguish the following layers.
-
 | Layer | POR internal object | Core-boundary counterpart |
 | --- | --- | --- |
 | Command invocation | `generate_request`, `batch_manifest`, `run_config` | Generation metadata only |
@@ -385,235 +386,137 @@ POR v0.2.0 should distinguish the following layers.
 | Projection set | `projection_set`, `projection_runtime_plan`, `skeleton_key`, `matching_rule`, `gap_expectation`, `negative_route` | Projection/profile references and generation metadata only |
 | Source adaptation | `source_adapter`, `source_record`, `source_unit`, `adapter_anchor`, `adapter_warning` | `sources`, Section / Occurrence anchors |
 | Source ingestion | `chunk`, `fragment`, `window` | Section / Occurrence anchors |
-| Interpretation | `context_force_hypothesis`, `retro_force_hypothesis` | Occurrence rationale, status, confidence, optional extension diagnostics |
+| Skeleton extraction | `slot_extraction_task`, `slot_match`, `slot_match_cluster` | Candidate decisions and optional diagnostics |
 | Skeleton graph | `skeleton_node`, `skeleton_edge`, `partial_match`, `open_slot`, `graph_snapshot`, `graph_query_result` | Session-only state, optional diagnostics / evidence, candidate decisions |
-| Reconciliation | `force_trace`, `force_cluster`, `support_signal`, `transition_signal` | Entity boundary decisions, Occurrence role decisions, Section source-window decisions |
 | Candidate construction | `reusable_material_candidate`, `placement_candidate`, `source_window_candidate` | `entities`, `occurrences`, `sections` |
-| Stabilization | `selection_state`, `freeze_state`, review queues | Core status fields, generation metadata, optional companion diagnostics |
 | Handoff | `draft_state`, `export_plan` | IdeaMark Core v1.2.0 document validated by `ideamark-cli` |
-| Tooling integration | `cli_command_resolution`, `describe_cache`, `validation_run` | External CLI command invocation and diagnostics |
 | LLM execution | `llm_task`, `llm_provider`, `prompt_plan`, `model_output` | Advisory slot extraction and repair hints only |
 
 ## Proposed module updates
 
-v0.2.0 should revise the v0.1.0 module list as follows.
+### M1 required modules
 
-### Keep from v0.1.0
+- `por_generate_command`: primary command entrypoint.
+- `projection_loader`: loads a Projection file or selected Projection from a library.
+- `skeleton_family_registry`: loads built-in default Skeleton Families.
+- `family_selection_resolver`: resolves active families from Projection `uses_skeleton_families`.
+- `projection_runtime_compiler`: compiles active family slots and slot mappings into extraction tasks.
+- `text_source_adapter`: converts a text file or stdin into source records and chunks.
+- `chunk_window_iterator`: produces overlapping chunk windows.
+- `llm_provider_registry`: resolves local provider for extraction.
+- `prompt_context_builder`: builds small slot extraction prompts.
+- `llm_output_guard`: validates local LLM JSON outputs.
+- `slot_match_store`: stores extraction outputs.
+- `slot_match_clusterer`: deduplicates and clusters matches.
+- `candidate_builder`: builds provisional reusable material, placement, and source-window candidates.
+- `core_draft_assembler`: mechanically emits rough Core draft namespaces.
+- `ideamark_cli_command_resolver`: resolves installed `ideamark-cli`.
+- `cli_validation_handoff`: validates generated draft and records diagnostics.
 
-- `segment_interpreter`
-- `context_force_extractor`
-- `explicit_entity_cue_extractor`
-- `force_normalizer`
-- `force_registry`
-- `overlap_resolver`
-- `window_builder`
-- `forward_reconciler`
-- `retro_reconciler`
-- `force_trace_builder`
-- `force_cluster_builder`
-- `support_aggregator`
-- `transition_analyzer`
-- `confidence_evaluator`
-- `state_updater`
-- `freeze_controller`
+### Later modules
 
-### Rename or refocus
-
-- `emergent_entity_builder` becomes `reusable_material_candidate_builder`.
-- `occurrence_projection_builder` becomes `role_bearing_placement_builder`.
-- `section_emergence_builder` becomes `source_window_section_builder`.
-- `draft_state_emitter` becomes `core_draft_emitter`.
-- `synthesis_adapter` becomes `ideamark_core_export_adapter`.
-
-### Add for v1.2.0 alignment
-
-- `projection_context_loader`: loads Projection/profile hints that guide decomposition and role vocabulary without making Projection internals part of POR.
-- `source_anchor_manager`: normalizes anchors and validates source references before export.
-- `core_boundary_mapper`: maps internal candidates to `meta`, `sources`, `sections`, `occurrences`, and `entities`.
-- `cli_validation_handoff`: calls `ideamark-cli validate`, `describe`, or related stateless commands and records diagnostics.
-- `extension_policy_manager`: decides what POR-specific metadata may be emitted as declared extensions vs. kept in session state only.
-
-### Add for POR command, source adapters, Projection Runtime, skeleton graph, and execution backends
-
-- `por_generate_command`: provides the primary command entrypoint for Source + Projection Set + Skeleton Family generation.
-- `batch_manifest_loader`: loads a manifest containing multiple sources, projections, adapter settings, output settings, and provider settings.
-- `skeleton_family_registry`: loads built-in default Skeleton Families and optional external family libraries.
-- `family_selection_resolver`: resolves which Skeleton Families are active for a run based on Projection Set and command options.
-- `source_adapter_registry`: resolves source adapters by media type, command option, or manifest entry.
-- `text_source_adapter`: first adapter that converts text files or stdin into source records, units, chunks, and anchors.
-- `source_unit_normalizer`: converts adapter-specific source units into POR-neutral source records and fragments.
-- `projection_runtime_compiler`: compiles Projection/profile guidance into skeleton graph keys, matching rules, gap expectations, and negative routing rules.
-- `skeleton_key_registry`: stores compiled keys and tracks which keys produced matches, partials, or review signals.
-- `chunk_window_iterator`: produces overlapping chunk windows for comprehensive source traversal.
-- `skeleton_matcher`: matches current chunks against skeleton keys and existing partial state.
-- `partial_match_store`: stores unfinished skeleton fragments, open slots, pending edges, ambiguous matches, stale partials, and completed matches.
-- `partial_match_reconciler`: combines new chunk evidence with existing partial skeleton graph state.
-- `skeleton_graph_builder`: creates and updates the internal graph from fragments, force hypotheses, Projection constraints, and candidates.
-- `context_force_graph_analyzer`: runs graph queries to identify pressure zones, boundary conflicts, weak candidates, and retroactive reinterpretation triggers.
-- `graph_snapshot_manager`: records graph snapshots so reinterpretation can be explained and compared over time.
-- `ideamark_cli_command_resolver`: resolves the installed `ideamark-cli` binary and records command metadata.
-- `cli_describe_cache`: caches `describe capabilities`, `describe params`, and `describe ai-authoring` outputs by CLI/document version.
-- `llm_provider_registry`: manages local, cloud, and mock LLM providers.
-- `llm_task_router`: routes POR task kinds to configured providers based on capability, privacy, cost, and fallback rules.
-- `prompt_context_builder`: builds prompts from Projection/profile hints, CLI describe guidance, source fragments, skeleton keys, partial matches, and graph state.
-- `llm_output_guard`: validates and normalizes structured LLM outputs before they affect session state.
+- `source_adapter_registry` for non-text adapters.
+- `batch_manifest_loader` for multi-source applications.
+- `partial_match_reconciler` for richer cross-window graph state.
+- `graph_snapshot_manager` for detailed reinterpretation history.
+- `diagnostic_repair_planner` for localized repair.
+- `github_repo_source_adapter`, `pdf_source_adapter`, `html_source_adapter`, `transcript_source_adapter`, and media adapters.
 
 ## Initial implementation phases
 
-### Phase 0 — Spec, CLI, and execution alignment
+### Phase 0 — M1 contract freeze
 
 Deliverables:
 
-- Keep `docs/dev/v0.1.0` as historical reference.
-- Add `docs/dev/v0.2.0` as the active planning line.
-- Write the v0.2.0 architecture plan and Core boundary mapping.
-- Identify required CLI contract assumptions for Core v1.2.0 validation.
-- Define how POR installs, resolves, and invokes the npm-distributed `ideamark-cli` command.
-- Define the initial LLM provider configuration model for local, cloud, and mock execution.
-- Define Projection Runtime responsibilities and the first skeleton key schema.
-- Define POR command inputs: Skeleton Family Library, Projection Set, Source Adapter, Original Source, output target, and run configuration.
+- Define M1 command contract.
+- Define M1 Projection subset.
+- Define M1 local LLM output JSON schema.
+- Define M1 text adapter output shape.
+- Define M1 fixed chunk/window defaults.
+- Define M1 candidate threshold configuration placeholders.
 
 Exit criteria:
 
-- The team agrees that v0.2.0 is the active development baseline for Core v1.2.0.
-- No v0.2.0 document claims POR owns Core document validity rules.
-- POR has a documented CLI command discovery and validation handoff strategy.
-- POR has a documented LLM provider boundary and does not assume one hardcoded model.
-- POR has a documented Projection-to-skeleton-key compilation boundary.
-- POR has a documented generation command contract suitable for later batch applications.
+- A developer can implement M1 without needing the full future POR design.
 
-### Phase 1 — Session, source adapter, and source model
+### Phase 1 — Text source and Projection loading
 
 Deliverables:
 
-- Session schema for sources, chunks, fragments, hypotheses, candidate states, diagnostics, and export plans.
-- Source Adapter interface and first `text_source_adapter`.
-- Source anchor representation compatible with Core v1.2.0 anchor expectations.
-- Basic `por init`, `por status`, source registration flow, and `por generate --source-adapter text` flow.
-- Initial storage choice for session state and skeleton graph snapshots.
-- Partial-match state schema for unfinished skeleton fragments and open slots.
+- `text_source_adapter`.
+- Projection loader for sample Projection Library style YAML.
+- Built-in Skeleton Family registry.
+- Family selection from `uses_skeleton_families`.
+- Slot extraction task generation from `slot_mapping`.
 
 Exit criteria:
 
-- POR can represent Original Sources and incremental ingestion state without producing Core objects prematurely.
-- POR can ingest a text source through the same adapter contract future non-text sources will use.
-- POR can preserve command metadata, adapter metadata, LLM task metadata, and diagnostics as session state.
-- POR can store partial skeleton matches independently from final Core candidates.
+- POR can list which family/slot extraction tasks will be run for a given text + Projection.
 
-### Phase 2 — Projection Runtime, skeleton graph, and candidate pipeline
+### Phase 2 — Local LLM slot extraction
 
 Deliverables:
 
-- Built-in default Skeleton Family registry.
-- Projection Set loading and family selection.
-- Projection Runtime compiler for initial skeleton key types.
-- Context-force extraction and normalization interfaces.
-- Overlapping chunk/window iterator.
-- Skeleton graph node / edge model.
-- Skeleton key matching and partial-match reconciliation.
-- Minimum graph query set for context-force analysis.
-- Force trace / cluster state model.
-- Candidate builders for reusable material, role-bearing placements, and source-window Sections.
-- LLM task interface for local skeleton slot extraction and limited repair.
+- Fixed chunk/window iterator.
+- Local LLM provider configuration.
+- Slot extraction prompt builder.
+- JSON output guard.
+- Slot match store.
 
 Exit criteria:
 
-- POR can compile Projection guidance into skeleton graph keys using selected Skeleton Families.
-- POR can iterate over overlapping text chunks and collect both complete and partial skeleton matches.
-- POR can combine later chunk evidence with saved partial skeleton graph state.
-- POR can derive provisional candidate graphs from skeleton graph analysis without prematurely committing to Core objects.
+- POR can run local LLM extraction over a large text and store slot matches.
 
-### Phase 3 — CLI-guided Core draft export
+### Phase 3 — Candidate assembly and Core draft
 
 Deliverables:
 
-- `core_boundary_mapper` that emits Core v1.2.0 draft structure.
-- `ideamark_core_export_adapter` for file output.
-- `ideamark_cli_command_resolver` for installed command discovery.
-- `cli_describe_cache` for capability / params / ai-authoring guidance.
-- `cli_validation_handoff` for validation diagnostics.
-- Initial localized repair loop for validation diagnostics.
+- Match deduplication.
+- Simple clustering.
+- Candidate scoring.
+- Rough Section / Occurrence / Entity assembly.
+- Core draft writer.
 
 Exit criteria:
 
-- A POR session can emit a draft with required `meta`, `sources`, `sections`, `occurrences`, and `entities` namespaces.
-- The draft can be passed to the installed `ideamark-cli validate` command in Core mode.
-- Validation diagnostics are stored and converted into review signals or localized repair tasks.
+- POR can emit a rough IdeaMark Core draft from extracted slot matches.
 
-### Phase 4 — Review and stabilization loop
+### Phase 4 — CLI validation and inspection
 
 Deliverables:
 
-- Review queue driven by validation diagnostics, low-confidence candidates, unresolved references, unknown role warnings, partial-match gaps, and skeleton graph conflicts.
-- Freeze / unfreeze policies aligned with Core status output.
-- Regeneration metadata and replacement notes where useful.
-- Diagnostic repair planning through configured LLM providers.
+- `ideamark-cli` command resolver.
+- `validate` handoff.
+- Diagnostic storage.
+- Report command or summary output showing matches, candidates, and validation result.
 
 Exit criteria:
 
-- POR can revise candidate structures without losing history and can export updated Core-compatible drafts.
-- POR can explain why a candidate was frozen, reopened, merged, split, or rejected.
-- POR can explain which skeleton key and chunk/window evidence led to a candidate.
-
-### Phase 5 — Provider, adapter, and fixture hardening
-
-Deliverables:
-
-- Local/cloud/mock LLM provider adapters.
-- Golden sample fixtures for source ingestion, text adapter behavior, skeleton key compilation, chunk matching, skeleton graph formation, CLI validation, and repair loops.
-- Provider privacy policy checks.
-- Failure-mode tests for missing CLI, incompatible CLI, unavailable LLM endpoint, malformed LLM output, source adapter warnings, and interrupted sessions.
-- Adapter design notes for GitHub repository, PDF, HTML, transcript, and video/audio source expansion.
-
-Exit criteria:
-
-- The same fixture can run with a mock provider in CI and with configured local/cloud providers during development.
-- POR can fail gracefully when external CLI, LLM, or source adapter dependencies are unavailable.
-- Future non-text adapters can be added without changing the downstream Projection Runtime / Skeleton Graph / Core draft pipeline.
+- A generated draft can be validated and reviewed.
 
 ## Open questions
 
-1. Should v0.2.0 store POR session state in SQLite from the first milestone, or begin with JSON session files for faster iteration?
-2. Which subset of Core v1.2.0 anchor types should POR support first?
-3. How should Projection/profile hints be represented locally before the official CLI fully supports v1.2.0 describe output?
-4. Which POR metadata deserves declared extension output, and which must remain session-only?
-5. Should role vocabulary be Projection-provided, document-local, or initially use the recommended Core v1.2.0 role vocabulary?
-6. What is the minimum useful skeleton graph model for v0.2.0: force/candidate graph only, or source/candidate/review graph from the start?
-7. Should skeleton graph snapshots be stored as append-only history, mutable current state plus audit log, or both?
-8. Which installed CLI binary name should POR prefer when `ideamark-cli` exposes multiple commands?
-9. Should POR install `ideamark-cli` as a direct dependency, peer dependency, or externally managed runtime dependency?
-10. Which LLM tasks are allowed to use cloud providers by default, and which require explicit user opt-in?
-11. What structured-output schema should LLM providers return for graph updates and candidate proposals?
-12. How should POR compare outputs across local/cloud/mock providers for regression and evaluation?
-13. What is the minimum skeleton key schema that can represent Projection-derived matching without becoming a second Projection language?
-14. Should skeleton key matching be deterministic first, LLM-assisted first, or hybrid from the first milestone?
-15. How should overlapping window results be deduplicated when the same skeleton key matches adjacent chunks?
-16. When should a partial match expire, and when should it remain open until the end of the source?
-17. How should negative keys suppress irrelevant matches without hiding unexpected useful material?
-18. What should be the stable Source Adapter output contract shared by text, GitHub repository, PDF, transcript, and future media adapters?
-19. Should `ideamark-por generate` accept multiple Projections directly, or only a Projection Set file that contains multiple Projection references?
-20. Should the built-in Skeleton Family Library be versioned independently from POR, or tied to the POR package version?
-21. What minimum batch manifest schema is needed for a higher-level app to gather many Original Sources and invoke POR repeatedly?
-22. How should source acquisition responsibility be split between a higher-level batch app and POR itself?
+1. What exact built-in Skeleton Family version should M1 package?
+2. Should M1 accept a Projection Library file plus `--projection-id`, or only a single Projection file?
+3. What local LLM endpoint should be the first supported default: Ollama-compatible HTTP, LM Studio-compatible OpenAI API, or generic OpenAI-compatible local endpoint?
+4. Should offsets be required in local LLM output, or should POR derive offsets by searching `span_text` inside the chunk?
+5. What initial candidate threshold should be used for tests?
+6. What minimal Core draft shape should M1 emit when a candidate has only partial slot coverage?
+7. Should M1 fail if `ideamark-cli validate` fails, or emit the draft plus diagnostics for review?
+8. How much extraction evidence should be embedded in the output document versus kept in the POR session directory?
 
 ## Recommended next artifact
 
-The next document should be `docs/dev/v0.2.0/por-engine-architecture-v0.2.md`.
+The next document should be `docs/dev/v0.2.0/por-m1-text-to-ideamark.md`.
 
-It should turn this plan into a module-level architecture with:
+It should turn this plan into an implementation-oriented milestone spec with:
 
-- data model sketches;
-- POR command input contract;
-- Source Adapter interface and first text adapter;
-- built-in Skeleton Family registry and external family loading;
-- Projection Set loading and family selection;
-- Projection Runtime and skeleton key compilation flow;
-- skeleton graph schema and graph query examples;
-- chunk/window iteration and partial-match lifecycle;
-- command surface assumptions;
-- `ideamark-cli` install / discovery / validation handoff flow;
-- LLM provider registry and task routing model;
-- Core v1.2.0 export examples;
-- validation handoff flow;
-- batch manifest assumptions for future applications;
-- non-goals for v0.2.0.
+- exact command examples;
+- M1 Projection subset schema;
+- M1 local LLM output JSON schema;
+- M1 text adapter output schema;
+- chunk/window defaults;
+- candidate scoring placeholders;
+- rough Core draft assembly rules;
+- validation handoff behavior;
+- a simple end-to-end test scenario.
