@@ -28,6 +28,9 @@ export interface ExtractionStats {
   retry_success_count: number;
   retry_failed_count: number;
   anchoring_warning_count: number;
+  match_class_counts: Record<string, number>;
+  slot_match_counts: Record<string, number>;
+  mapped_slot_match_counts: Record<string, number>;
 }
 
 export interface ExtractionOutput {
@@ -76,6 +79,14 @@ export async function runExtraction(
     retry_success_count: 0,
     retry_failed_count: 0,
     anchoring_warning_count: 0,
+    match_class_counts: {
+      compatible: 0,
+      partial: 0,
+      uncertain: 0,
+      negative: 0,
+    },
+    slot_match_counts: {},
+    mapped_slot_match_counts: {},
   };
 
   for (const chunk of chunks) {
@@ -155,6 +166,11 @@ export async function runExtraction(
       stats.anchoring_warning_count += result.warnings.filter(
         (w) => w.code === "span_not_in_chunk",
       ).length;
+      for (const match of result.matches) {
+        increment(stats.match_class_counts, match.match_class);
+        increment(stats.slot_match_counts, match.slot);
+        increment(stats.mapped_slot_match_counts, match.mapped_slot);
+      }
       chunkResults.push(result);
       results.push(result);
 
@@ -218,4 +234,8 @@ function rawAttempt(
           error: err instanceof Error ? err.message : String(err),
         },
   };
+}
+
+function increment(counts: Record<string, number>, key: string): void {
+  counts[key] = (counts[key] ?? 0) + 1;
 }
