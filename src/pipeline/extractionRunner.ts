@@ -10,8 +10,8 @@ import type {
 } from "../types.js";
 
 // slot_match_store + extraction loop (spec §7): run every task against every
-// chunk, guard outputs (one retry on invalid JSON), persist raw results per
-// chunk, and resolve chunk-relative offsets into source-unit offsets.
+// chunk, guard outputs (one retry on invalid JSON), persist raw LLM responses
+// per chunk, and resolve chunk-relative offsets into source-unit offsets.
 
 export interface ExtractionStats {
   chunk_count: number;
@@ -26,6 +26,22 @@ export interface ExtractionOutput {
   results: SlotExtractionResult[];
   resolved: ResolvedMatch[];
   stats: ExtractionStats;
+}
+
+interface RawAttemptRecord {
+  provider: string;
+  task_id: string;
+  source_id: string;
+  chunk_id: string;
+  projection_id: string;
+  family_id: string;
+  attempt: number;
+  prompt: string;
+  raw_text: string | null;
+  guard: {
+    ok: boolean;
+    error?: string;
+  };
 }
 
 export async function runExtraction(
@@ -48,25 +64,50 @@ export async function runExtraction(
 
   for (const chunk of chunks) {
     const chunkResults: SlotExtractionResult[] = [];
+    const rawAttempts: RawAttemptRecord[] = [];
     for (const task of tasks) {
       stats.call_count += 1;
       let result: SlotExtractionResult | null = null;
       try {
+        const prompt = buildUserPrompt(task, chunk);
         const rawText = await provider.extract(task, chunk);
         try {
           result = guardLlmOutput(rawText, task, chunk);
-        } catch {
+          rawAttempts.push(rawAttempt(provider, task, chunk, 1, prompt, rawText, true));
+        } catch (guardErr) {
+          rawAttempts.push(
+            rawAttempt(provider, task, chunk, 1, prompt, rawText, false, guardErr),
+          );
           // one corrective retry, then degrade to zero matches (spec §7)
           stats.retry_count += 1;
-          const retryText = await provider.extract(
-            task,
-            chunk,
-            buildUserPrompt(task, chunk) + RETRY_SUFFIX,
-          );
-          result = guardLlmOutput(retryText, task, chunk);
+          const retryPrompt = prompt + RETRY_SUFFIX;
+          const retryText = await provider.extract(task, chunk, retryPrompt);
+          try {
+            result = guardLlmOutput(retryText, task, chunk);
+            rawAttempts.push(
+              rawAttempt(provider, task, chunk, 2, retryPrompt, retryText, true),
+            );
+          } catch (retryGuardErr) {
+            rawAttempts.push(
+              rawAttempt(
+                provider,
+                task,
+                chunk,
+                2,
+                retryPrompt,
+                retryText,
+                false,
+                retryGuardErr,
+              ),
+            );
+            throw retryGuardErr;
+          }
         }
       } catch (err) {
         stats.failed_calls += 1;
+        if (!rawAttempts.some((r) => r.task_id === task.task_id && r.attempt >= 1)) {
+          rawAttempts.push(rawAttempt(provider, task, chunk, 1, buildUserPrompt(task, chunk), null, false, err));
+        }
         result = {
           task_id: task.task_id,
           source_id: chunk.source_id,
@@ -104,6 +145,7 @@ export async function runExtraction(
         });
       }
     }
+    session.writeRawResponses(chunk.chunk_id, rawAttempts);
     session.writeMatches(chunk.chunk_id, chunkResults);
     log(
       `chunk ${chunk.index + 1}/${chunks.length} (${chunk.chunk_id}): ${chunkResults.reduce((n, r) => n + r.matches.length, 0)} matches`,
@@ -111,4 +153,33 @@ export async function runExtraction(
   }
 
   return { results, resolved, stats };
+}
+
+function rawAttempt(
+  provider: LlmProvider,
+  task: ExtractionTask,
+  chunk: ChunkWindow,
+  attempt: number,
+  prompt: string,
+  rawText: string | null,
+  ok: boolean,
+  err?: unknown,
+): RawAttemptRecord {
+  return {
+    provider: provider.name,
+    task_id: task.task_id,
+    source_id: chunk.source_id,
+    chunk_id: chunk.chunk_id,
+    projection_id: task.projection_id,
+    family_id: task.family_id,
+    attempt,
+    prompt,
+    raw_text: rawText,
+    guard: ok
+      ? { ok: true }
+      : {
+          ok: false,
+          error: err instanceof Error ? err.message : String(err),
+        },
+  };
 }
