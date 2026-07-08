@@ -42,6 +42,7 @@ Therefore v0.2.0 should reuse v0.1.0's conceptual machinery, but realign its emi
 6. Use a POR-owned skeleton graph as an intermediate representation for context-force analysis, not as a required Core document structure.
 7. Treat the npm-distributed `ideamark-cli` command surface as an external tool boundary that POR discovers and invokes rather than reimplementing.
 8. Support configurable local and cloud LLM backends through a provider-neutral task interface.
+9. Compile Projection guidance into executable skeleton graph matching keys so chunk-level analysis does not require sending the full Projection into every LLM prompt.
 
 ## Key v0.2.0 design discussions
 
@@ -84,6 +85,67 @@ Recommended edge types:
 - `needs_review`
 
 The key design point is that context force should be analyzed on this graph before producing Core objects. Core-boundary output should receive only stabilized results: Entity material, Occurrence placement, Section windows, anchors, rationale, status, and confidence. The raw graph may remain in session storage or be emitted as optional diagnostics / evidence, but it must not become a required Core namespace.
+
+### Projection Runtime and skeleton-key matching
+
+POR should not send the entire Projection into every chunk-level LLM prompt. That is too complex, unstable, and expensive for large-source iteration.
+
+Instead, the Projection Runtime should compile Projection guidance into a smaller set of executable skeleton graph matching keys.
+
+The intended pipeline is:
+
+```text
+Projection
+  -> Projection Runtime
+  -> Skeleton Graph Key Set
+  -> Chunk / Window Matching
+  -> Partial Skeleton Graph State
+  -> Skeleton Graph Analysis
+  -> Prompt Builder
+  -> LLM
+```
+
+In this model, Skeleton Graph Analysis is primarily a classification, matching, and state-combination stage.
+
+It should perform iterative processing over overlapping chunks of the Original Source:
+
+1. The source is split into windows with overlap so large inputs can be examined comprehensively.
+2. For each chunk/window, POR uses the skeleton graph key set to identify portions of the source that appear to match Projection-derived structural expectations.
+3. A match does not need to be complete inside the current chunk.
+4. Partial matches are stored as unfinished skeleton graph fragments, open slots, pending edges, or unresolved candidate structures.
+5. Later chunks are checked against both the key set and the saved partial state.
+6. When enough support accumulates, partial structures can become candidate nodes or candidate edges.
+7. Candidate structures remain provisional until stabilization, review, validation, or freeze policy promotes them toward Core-boundary output.
+
+The skeleton graph therefore acts like a classification key, not merely a generated graph. It lets POR ask:
+
+- does this chunk contain material that fits any Projection-derived skeleton pattern;
+- does this chunk complete or strengthen an unfinished partial skeleton from a prior chunk;
+- does this chunk conflict with a previously inferred skeleton fragment;
+- does this chunk suggest that an existing candidate boundary is too narrow or too broad;
+- does this chunk create evidence for a new source window, role-bearing placement, or reusable material candidate.
+
+This design preserves the main value of Projection while reducing prompt complexity. Projection is executed by the Projection Runtime as graph keys, matching rules, and state transitions. The LLM receives narrower prompts that ask it to inspect specific chunk material, explain ambiguous matches, propose repairs, or interpret only the relevant partial graph context.
+
+Recommended compiled key types:
+
+- `structural_key`: expected graph shape, such as problem-evidence-measure, cause-effect, claim-support, or prerequisite-action.
+- `role_key`: expected Occurrence role pressure, such as evidence, mechanism, risk, constraint, or target application.
+- `boundary_key`: cues for entity boundary, section window boundary, or source-fragment grouping.
+- `relation_key`: expected relation type or edge direction.
+- `gap_key`: an expected missing part, such as evidence without conclusion, recommendation without target, or mechanism without condition.
+- `negative_key`: material that should be ignored, rejected, or routed to review under the current Projection.
+
+Recommended partial state types:
+
+- `partial_match`: a matched subset of a skeleton key that lacks required support.
+- `open_slot`: an expected graph element not yet found.
+- `pending_edge`: a plausible relation awaiting confirmation from later context.
+- `ambiguous_match`: a chunk span that matches multiple keys or roles.
+- `stale_partial`: a partial match that has not received support after enough later windows.
+- `completed_match`: a partial structure that now has sufficient support to become a candidate.
+
+This should be treated as the central reason to use POR instead of one-shot LLM generation: POR can scan large sources through Projection-derived skeleton keys while carrying forward incomplete structures across overlapping windows.
 
 ### Using npm-distributed `ideamark-cli`
 
@@ -164,6 +226,8 @@ The following topics should be treated as first-class v0.2.0 planning items:
 6. Privacy and provider policy: local/cloud LLM routing must respect source sensitivity and user configuration.
 7. Evaluation fixtures: define small golden sources where expected skeleton graph and Core draft behavior can be regression-tested.
 8. Failure modes: handle missing CLI, incompatible CLI, unavailable LLM endpoint, malformed LLM output, partial validation output, and interrupted sessions.
+9. Projection Runtime compilation: define how Projection is converted into skeleton graph keys, matching rules, gap expectations, and negative routing rules.
+10. Partial-match lifecycle: define how unfinished skeleton fragments are created, refreshed, completed, expired, merged, split, or sent to review.
 
 ## Core boundary principles
 
@@ -176,7 +240,8 @@ POR may store and update:
 - source ingestion state;
 - chunking and scheduling state;
 - context-force hypotheses;
-- skeleton graph nodes, edges, snapshots, and graph query results;
+- Projection Runtime outputs, skeleton graph keys, and matching rules;
+- skeleton graph nodes, edges, snapshots, partial matches, open slots, and graph query results;
 - retroactive reinterpretation history;
 - force traces and force clusters;
 - candidate scores;
@@ -206,8 +271,9 @@ POR v0.2.0 should distinguish the following layers.
 | Layer | POR internal object | Core-boundary counterpart |
 | --- | --- | --- |
 | Source ingestion | `source_record`, `chunk`, `fragment` | `sources`, Section / Occurrence anchors |
+| Projection runtime | `projection_runtime_plan`, `skeleton_key`, `matching_rule`, `gap_expectation`, `negative_route` | Projection/profile references and generation metadata only |
 | Interpretation | `context_force_hypothesis`, `retro_force_hypothesis` | Occurrence rationale, status, confidence, optional extension diagnostics |
-| Skeleton graph | `skeleton_node`, `skeleton_edge`, `graph_snapshot`, `graph_query_result` | Session-only state, optional diagnostics / evidence, candidate decisions |
+| Skeleton graph | `skeleton_node`, `skeleton_edge`, `partial_match`, `open_slot`, `graph_snapshot`, `graph_query_result` | Session-only state, optional diagnostics / evidence, candidate decisions |
 | Reconciliation | `force_trace`, `force_cluster`, `support_signal`, `transition_signal` | Entity boundary decisions, Occurrence role decisions, Section source-window decisions |
 | Candidate construction | `reusable_material_candidate`, `placement_candidate`, `source_window_candidate` | `entities`, `occurrences`, `sections` |
 | Stabilization | `selection_state`, `freeze_state`, review queues | Core status fields, generation metadata, optional companion diagnostics |
@@ -254,8 +320,14 @@ v0.2.0 should revise the v0.1.0 module list as follows.
 - `cli_validation_handoff`: calls `ideamark-cli validate`, `describe`, or related stateless commands and records diagnostics.
 - `extension_policy_manager`: decides what POR-specific metadata may be emitted as declared extensions vs. kept in session state only.
 
-### Add for skeleton graph and execution backends
+### Add for Projection Runtime, skeleton graph, and execution backends
 
+- `projection_runtime_compiler`: compiles Projection/profile guidance into skeleton graph keys, matching rules, gap expectations, and negative routing rules.
+- `skeleton_key_registry`: stores compiled keys and tracks which keys produced matches, partials, or review signals.
+- `chunk_window_iterator`: produces overlapping chunk windows for comprehensive source traversal.
+- `skeleton_matcher`: matches current chunks against skeleton keys and existing partial state.
+- `partial_match_store`: stores unfinished skeleton fragments, open slots, pending edges, ambiguous matches, stale partials, and completed matches.
+- `partial_match_reconciler`: combines new chunk evidence with existing partial skeleton graph state.
 - `skeleton_graph_builder`: creates and updates the internal graph from fragments, force hypotheses, Projection constraints, and candidates.
 - `context_force_graph_analyzer`: runs graph queries to identify pressure zones, boundary conflicts, weak candidates, and retroactive reinterpretation triggers.
 - `graph_snapshot_manager`: records graph snapshots so reinterpretation can be explained and compared over time.
@@ -263,7 +335,7 @@ v0.2.0 should revise the v0.1.0 module list as follows.
 - `cli_describe_cache`: caches `describe capabilities`, `describe params`, and `describe ai-authoring` outputs by CLI/document version.
 - `llm_provider_registry`: manages local, cloud, and mock LLM providers.
 - `llm_task_router`: routes POR task kinds to configured providers based on capability, privacy, cost, and fallback rules.
-- `prompt_context_builder`: builds prompts from Projection/profile hints, CLI describe guidance, source fragments, and skeleton graph state.
+- `prompt_context_builder`: builds prompts from Projection/profile hints, CLI describe guidance, source fragments, skeleton keys, partial matches, and graph state.
 - `llm_output_guard`: validates and normalizes structured LLM outputs before they affect session state.
 
 ## Initial implementation phases
@@ -278,6 +350,7 @@ Deliverables:
 - Identify required CLI contract assumptions for Core v1.2.0 validation.
 - Define how POR installs, resolves, and invokes the npm-distributed `ideamark-cli` command.
 - Define the initial LLM provider configuration model for local, cloud, and mock execution.
+- Define Projection Runtime responsibilities and the first skeleton key schema.
 
 Exit criteria:
 
@@ -285,6 +358,7 @@ Exit criteria:
 - No v0.2.0 document claims POR owns Core document validity rules.
 - POR has a documented CLI command discovery and validation handoff strategy.
 - POR has a documented LLM provider boundary and does not assume one hardcoded model.
+- POR has a documented Projection-to-skeleton-key compilation boundary.
 
 ### Phase 1 — Session and source model
 
@@ -294,18 +368,23 @@ Deliverables:
 - Source anchor representation compatible with Core v1.2.0 anchor expectations.
 - Basic `por init`, `por status`, and source registration flow.
 - Initial storage choice for session state and skeleton graph snapshots.
+- Partial-match state schema for unfinished skeleton fragments and open slots.
 
 Exit criteria:
 
 - POR can represent Original Sources and incremental ingestion state without producing Core objects prematurely.
 - POR can preserve command metadata, LLM task metadata, and diagnostics as session state.
+- POR can store partial skeleton matches independently from final Core candidates.
 
-### Phase 2 — Skeleton graph and candidate pipeline
+### Phase 2 — Projection Runtime, skeleton graph, and candidate pipeline
 
 Deliverables:
 
+- Projection Runtime compiler for initial skeleton key types.
 - Context-force extraction and normalization interfaces.
+- Overlapping chunk/window iterator.
 - Skeleton graph node / edge model.
+- Skeleton key matching and partial-match reconciliation.
 - Minimum graph query set for context-force analysis.
 - Force trace / cluster state model.
 - Candidate builders for reusable material, role-bearing placements, and source-window Sections.
@@ -313,7 +392,9 @@ Deliverables:
 
 Exit criteria:
 
-- POR can produce provisional skeleton graphs from chunks while preserving uncertainty and reinterpretation history.
+- POR can compile Projection guidance into skeleton graph keys.
+- POR can iterate over overlapping chunks and collect both complete and partial skeleton matches.
+- POR can combine later chunk evidence with saved partial skeleton graph state.
 - POR can derive provisional candidate graphs from skeleton graph analysis without prematurely committing to Core objects.
 
 ### Phase 3 — CLI-guided Core draft export
@@ -336,7 +417,7 @@ Exit criteria:
 
 Deliverables:
 
-- Review queue driven by validation diagnostics, low-confidence candidates, unresolved references, unknown role warnings, and skeleton graph conflicts.
+- Review queue driven by validation diagnostics, low-confidence candidates, unresolved references, unknown role warnings, partial-match gaps, and skeleton graph conflicts.
 - Freeze / unfreeze policies aligned with Core status output.
 - Regeneration metadata and replacement notes where useful.
 - Diagnostic repair planning through configured LLM providers.
@@ -345,13 +426,14 @@ Exit criteria:
 
 - POR can revise candidate structures without losing history and can export updated Core-compatible drafts.
 - POR can explain why a candidate was frozen, reopened, merged, split, or rejected.
+- POR can explain which skeleton key and chunk/window evidence led to a candidate.
 
 ### Phase 5 — Provider and fixture hardening
 
 Deliverables:
 
 - Local/cloud/mock LLM provider adapters.
-- Golden sample fixtures for source ingestion, skeleton graph formation, CLI validation, and repair loops.
+- Golden sample fixtures for source ingestion, skeleton key compilation, chunk matching, skeleton graph formation, CLI validation, and repair loops.
 - Provider privacy policy checks.
 - Failure-mode tests for missing CLI, incompatible CLI, unavailable LLM endpoint, malformed LLM output, and interrupted sessions.
 
@@ -374,6 +456,11 @@ Exit criteria:
 10. Which LLM tasks are allowed to use cloud providers by default, and which require explicit user opt-in?
 11. What structured-output schema should LLM providers return for graph updates and candidate proposals?
 12. How should POR compare outputs across local/cloud/mock providers for regression and evaluation?
+13. What is the minimum skeleton key schema that can represent Projection-derived matching without becoming a second Projection language?
+14. Should skeleton key matching be deterministic first, LLM-assisted first, or hybrid from the first milestone?
+15. How should overlapping window results be deduplicated when the same skeleton key matches adjacent chunks?
+16. When should a partial match expire, and when should it remain open until the end of the source?
+17. How should negative keys suppress irrelevant matches without hiding unexpected useful material?
 
 ## Recommended next artifact
 
@@ -382,7 +469,9 @@ The next document should be `docs/dev/v0.2.0/por-engine-architecture-v0.2.md`.
 It should turn this plan into a module-level architecture with:
 
 - data model sketches;
+- Projection Runtime and skeleton key compilation flow;
 - skeleton graph schema and graph query examples;
+- chunk/window iteration and partial-match lifecycle;
 - command surface assumptions;
 - `ideamark-cli` install / discovery / validation handoff flow;
 - LLM provider registry and task routing model;
