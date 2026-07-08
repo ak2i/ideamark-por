@@ -17,9 +17,12 @@
   "engines": {
     "node": ">=20"
   },
-  "dependencies": {},
+  "dependencies": {
+    "yaml": "^2.9.0"
+  },
   "devDependencies": {
     "@types/node": "^24.0.0",
+    "ideamark-cli": "^0.3.1",
     "tsx": "^4.20.0",
     "typescript": "^5.8.0"
   }
