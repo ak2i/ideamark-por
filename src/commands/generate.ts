@@ -18,7 +18,7 @@ import { loadFamilyLibrary } from "../projection/skeletonFamilyRegistry.js";
 import { SessionStore } from "../session/sessionStore.js";
 import type { PorWarning } from "../types.js";
 
-// `ideamark-por generate` (spec §1.1): full M1 pipeline —
+// `ideamark-por generate` (spec §1.1): full M1 pipeline --
 // adapt -> compile -> chunk -> extract -> cluster -> assemble -> validate.
 
 export async function runGenerate(config: RunConfig): Promise<number> {
@@ -51,7 +51,11 @@ export async function runGenerate(config: RunConfig): Promise<number> {
   session.writeJson("tasks.json", tasks);
 
   // --- Phase 2: chunk + extract ---
-  const chunks = chunkSource(source, { maxChunks: config.maxChunks });
+  const chunks = chunkSource(source, {
+    chunkSize: config.chunkSize,
+    chunkOverlap: config.chunkOverlap,
+    maxChunks: config.maxChunks,
+  });
   log(
     `source ${source.source_id}: ${source.units[0].char_length} chars -> ${chunks.length} chunk(s), ${tasks.length} task(s), provider ${config.llmProvider}`,
   );
