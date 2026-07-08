@@ -263,9 +263,9 @@ Emitted namespaces (all five always present):
   Projection title, `projections: [{role: generation, ref: <projection id>}]`,
   and an `x_por_generation` extension block (tool version, provider, model,
   chunk stats, thresholds).
-- `sources`: one entry per source record (`id`, `type: text_file|stdin`,
-  `title`, `uri`).
-- `sections`: from merged source windows; each carries a `char_range` anchor
+- `sources`: one entry per source record (`id`, `type: document` — `other`
+  for stdin — matching the CLI's known source-type vocabulary, `title`, `uri`).
+- `sections`: from merged source windows; each carries a `character_range` anchor
   (`precision: exact` when offsets resolved, else `approximate`,
   `role: source_context`) and ordered `occurrences` refs.
 - `occurrences`: `id`, `entity`, `role`, `rationale` (top slot reasons),

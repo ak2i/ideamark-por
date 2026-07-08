@@ -95,7 +95,7 @@ export function assembleCoreDraft(input: AssemblyInput): CoreDraft {
           ? [
               {
                 source: source.source_id,
-                type: "char_range",
+                type: "character_range",
                 ranges: anchors,
                 precision: "exact",
                 role: "extraction_evidence",
@@ -104,7 +104,7 @@ export function assembleCoreDraft(input: AssemblyInput): CoreDraft {
           : [
               {
                 source: source.source_id,
-                type: "char_range",
+                type: "character_range",
                 ranges: [{ start: cluster.start, end: cluster.end }],
                 precision: "approximate",
                 role: "extraction_evidence",
@@ -128,7 +128,7 @@ export function assembleCoreDraft(input: AssemblyInput): CoreDraft {
       anchors: [
         {
           source: source.source_id,
-          type: "char_range",
+          type: "character_range",
           ranges: [{ start: window.start, end: window.end }],
           precision: "exact",
           role: "source_context",
@@ -165,7 +165,7 @@ export function assembleCoreDraft(input: AssemblyInput): CoreDraft {
     sources: [
       {
         id: source.source_id,
-        type: source.source_uri === "stdin:" ? "stdin" : "text_file",
+        type: source.source_uri === "stdin:" ? "other" : "document",
         title: source.title,
         uri: source.source_uri,
       },
