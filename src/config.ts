@@ -26,6 +26,8 @@ export interface RunConfig {
   sessionDir: string;
   docId?: string;
   maxChunks?: number;
+  chunkSize?: number;
+  chunkOverlap?: number;
   strictValidate: boolean;
   skipValidate: boolean;
   ideamarkCliPath?: string;
