@@ -30,6 +30,8 @@ generate options:
   --llm-model <name>         Model name
   --doc-id <id>              Document id for meta.document_id
   --max-chunks <n>           Process at most n chunks (testing)
+  --chunk-size <n>           Chunk window size in characters
+  --chunk-overlap <n>        Chunk overlap size in characters
   --ideamark-cli <path>      Explicit ideamark CLI path
   --strict-validate          Exit non-zero when validation fails
   --skip-validate            Skip ideamark-cli validation
@@ -40,6 +42,16 @@ See docs/dev/v0.2.0/por-m1-text-to-ideamark.md for the M1 contract.
 function fail(message: string): never {
   console.error(`error: ${message}`);
   process.exit(2);
+}
+
+function parsePositiveIntOption(value: unknown, name: string): number | undefined {
+  if (value === undefined) return undefined;
+  if (typeof value !== "string") fail(`${name} must be a positive integer`);
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isFinite(parsed) || parsed < 1 || String(parsed) !== value.trim()) {
+    fail(`${name} must be a positive integer`);
+  }
+  return parsed;
 }
 
 async function main(): Promise<void> {
@@ -73,6 +85,8 @@ async function main(): Promise<void> {
       "llm-model": { type: "string" },
       "doc-id": { type: "string" },
       "max-chunks": { type: "string" },
+      "chunk-size": { type: "string" },
+      "chunk-overlap": { type: "string" },
       "ideamark-cli": { type: "string" },
       "strict-validate": { type: "boolean", default: false },
       "skip-validate": { type: "boolean", default: false },
@@ -107,11 +121,11 @@ async function main(): Promise<void> {
     if (!values.projection) fail("generate requires --projection");
     if (!values.out) fail("generate requires --out");
     const { runGenerate } = await import("./commands/generate.js");
-    const maxChunks = values["max-chunks"]
-      ? Number.parseInt(values["max-chunks"], 10)
-      : undefined;
-    if (maxChunks !== undefined && (!Number.isFinite(maxChunks) || maxChunks < 1)) {
-      fail("--max-chunks must be a positive integer");
+    const maxChunks = parsePositiveIntOption(values["max-chunks"], "--max-chunks");
+    const chunkSize = parsePositiveIntOption(values["chunk-size"], "--chunk-size");
+    const chunkOverlap = parsePositiveIntOption(values["chunk-overlap"], "--chunk-overlap");
+    if (chunkSize !== undefined && chunkOverlap !== undefined && chunkOverlap >= chunkSize) {
+      fail("--chunk-overlap must be smaller than --chunk-size");
     }
     process.exit(
       await runGenerate({
@@ -132,6 +146,8 @@ async function main(): Promise<void> {
         sessionDir: values["session-dir"] ?? `${values.out}.por-session`,
         docId: values["doc-id"],
         maxChunks,
+        chunkSize,
+        chunkOverlap,
         strictValidate: values["strict-validate"] ?? false,
         skipValidate: values["skip-validate"] ?? false,
         ideamarkCliPath: values["ideamark-cli"],
