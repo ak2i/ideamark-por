@@ -37,13 +37,13 @@ export function guardLlmOutput(
   const slotSet = new Map(task.slots.map((s) => [s.slot, s.mapped_slot]));
 
   const parsed = extractJson(rawText) as Record<string, unknown>;
-  const rawMatches = Array.isArray(parsed.matches) ? parsed.matches : [];
   if (!Array.isArray(parsed.matches)) {
-    warnings.push({
-      code: "missing_matches_list",
-      message: "model output had no `matches` list; treated as empty",
-    });
+    const keys = Object.keys(parsed).slice(0, 12).join(", ");
+    throw new Error(
+      `model output must contain a top-level matches array; found keys: ${keys || "<none>"}`,
+    );
   }
+  const rawMatches = parsed.matches;
 
   for (const [i, rawMatch] of (rawMatches as unknown[]).entries()) {
     const m = rawMatch as Record<string, unknown>;

@@ -1,6 +1,7 @@
 import type { ChunkWindow, ExtractionTask } from "../types.js";
 import { LocalOpenAiProvider } from "./localOpenAiProvider.js";
 import { MockProvider } from "./mockProvider.js";
+import { OllamaProvider } from "./ollamaProvider.js";
 
 // Provider-neutral LLM task interface (planning: "Local and cloud LLM execution").
 // M1 supports the `skeleton_slot_extraction` task kind only.
@@ -28,9 +29,11 @@ export function resolveProvider(name: string, config: ProviderConfig): LlmProvid
   switch (name) {
     case "local":
       return new LocalOpenAiProvider(config);
+    case "ollama":
+      return new OllamaProvider(config);
     case "mock":
       return new MockProvider();
     default:
-      throw new Error(`unknown llm provider: ${name} (supported: local, mock)`);
+      throw new Error(`unknown llm provider: ${name} (supported: local, ollama, mock)`);
   }
 }

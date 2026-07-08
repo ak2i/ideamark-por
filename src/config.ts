@@ -9,7 +9,7 @@ export const M1_DEFAULTS = {
   dedup_similarity: 0.85,
   section_merge_gap_ratio: 0.25,
   llm_base_url: "http://localhost:11434/v1",
-  llm_model: "llama3.1",
+  llm_model: "qwen3:4b",
 } as const;
 
 export interface RunConfig {

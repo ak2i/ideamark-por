@@ -7,9 +7,11 @@ export function buildSystemPrompt(): string {
   return [
     "You are a careful information extraction engine.",
     "You extract skeleton slot matches from ONE text chunk.",
-    "You must answer with a single JSON object and nothing else.",
-    "Never invent text: every span_text must be copied verbatim from the chunk.",
-    "If nothing matches a slot, simply omit it. An empty matches list is a valid answer.",
+    "You must answer with one JSON object and nothing else.",
+    "The only top-level JSON keys allowed are matches and warnings.",
+    "Never use slot names as top-level JSON keys.",
+    "Every span_text must be copied exactly from the chunk.",
+    "If no slots match, return exactly {\"matches\":[],\"warnings\":[]}.",
   ].join(" ");
 }
 
@@ -34,8 +36,17 @@ ${contextLines ? contextLines + "\n" : ""}
 Slots to look for:
 ${slotLines}
 
-Rules:
-- span_text: a short verbatim excerpt (<= 400 chars) from the chunk that fills the slot.
+Output contract:
+- Return a single JSON object with exactly two top-level keys: "matches" and "warnings".
+- "matches" MUST be an array. It may be empty.
+- If nothing matches, return exactly: {"matches":[],"warnings":[]}.
+- Do not return slot names as top-level keys, such as {"evidence_item":[...]}.
+- Do not wrap the result in another object such as {"answer":{...}}.
+
+Match object rules:
+- slot: one of the slot names listed above.
+- mapped_slot: the mapped_slot value listed for that slot.
+- span_text: a short verbatim excerpt (<= 400 chars) copied exactly from the chunk.
 - confidence: 0.0-1.0.
 - match_class: "compatible" (clearly fills the slot), "partial" (incomplete), "uncertain", or "negative" (material that looks related but should be rejected).
 - reason: one short sentence.
@@ -51,4 +62,4 @@ CHUNK>>>`;
 }
 
 export const RETRY_SUFFIX =
-  "\n\nYour previous answer was not valid JSON. Answer again with ONLY the JSON object described above.";
+  "\n\nYour previous answer did not satisfy the output contract. Answer again with ONLY one JSON object whose top-level keys are matches and warnings. If there are no matches, return exactly {\"matches\":[],\"warnings\":[]}. Do not use slot names as top-level keys.";
