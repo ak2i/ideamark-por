@@ -37,7 +37,8 @@ contain legacy wording.
 1. `glossary.md`
    - Defines current v0.3.0 vocabulary.
    - Marks terms as standardized, provisional, or legacy.
-   - Standardizes `Harmony Credit` and `fragment_quality`.
+   - Standardizes `Harmony Credit`, `fragment_quality`, and the distinction
+     between `Creation` as process and `Generate` as general action.
 
 2. `por-v0.3.0-terminology-decisions.md`
    - Records resolved terminology decisions.
@@ -112,6 +113,8 @@ POR v0.3.0 front-end:
 
 Creation:
   Projection + Original Source + Domain Context
+    -> generate IdeaMark Document
+    -> validate / trace / persist
     -> IdeaMark Document stored in DB
 
 Retrieve:
@@ -132,7 +135,7 @@ Evidence Landscape:
 
 Reconstruction:
   Projection + Evidence Landscape + IdeaMark annotations + Original Source fragments
-    -> expression that activates or supports Intellectual Activity
+    -> generate expression that activates or supports Intellectual Activity
 ```
 
 ## 3. Working Vocabulary
@@ -146,6 +149,7 @@ This README keeps only the short operational summary below.
 - Creation
 - Retrieve
 - Reconstruction
+- Generate as general action, not top-level process
 - Role Emergence Principle
 - Projection
 - Domain Context
@@ -227,25 +231,40 @@ Rationale:
 The theory notes now contain broad architectural material. Implementation scope
 should be derived after the conceptual model stabilizes enough to avoid rework.
 
+### 4.4 Generate vs Creation terminology
+
+Decision:
+
+- Use **Creation** as the top-level process name for creating an IdeaMark Document
+  for DB storage.
+- Treat **Generate** as a general action that may occur inside Creation, Retrieve,
+  Harmony, Reconstruction, CLI commands, Core utilities, or later workflows.
+- Do not place Generate in parallel with Creation / Retrieve / Reconstruction in
+  the top-level process model.
+
+Rationale:
+
+Creation is a workflow/process. Generate is an action. Creation may include
+Generate, Validate, Record Trace, and Persist. Retrieve and Reconstruction may
+also include generation actions, such as generating Candidate Spaces, Elements,
+rankings, narratives, slides, OKF, TPCG, or other outputs.
+
+Working distinction:
+
+```text
+Process:
+  Creation / Retrieve / Reconstruction
+
+Action:
+  generate / validate / persist / search / match / rank / compose / render
+```
+
 ## 5. Potential Inconsistencies / Discussion Points
 
 The following points are intentionally not resolved in this README. They should
 be treated as design questions for follow-up discussion.
 
-### 5.1 Generate vs Creation terminology
-
-`por-v0.3.0-domain-distribution.md` uses **Generate / Retrieve / Reconstruct** in
-some sections, while `por-v0.3.0-three-process-model.md` standardizes the process
-names as **Creation / Retrieve / Reconstruction**.
-
-Discussion point:
-
-- Should `Generate` be renamed to `Creation` everywhere?
-- Or should `Generate` refer specifically to generating an IdeaMark Document,
-  while `Creation` is the broader process that includes domain trace, source
-  anchoring, and persistence?
-
-### 5.2 One Projection or process-specific Projection profiles
+### 5.1 One Projection or process-specific Projection profiles
 
 `por-v0.3.0-three-process-model.md` asks whether one Projection can safely serve
 Creation, Retrieve, and Reconstruction, or whether separate Projection profiles
@@ -261,7 +280,7 @@ Discussion point:
 - Should a Projection file support named profiles without turning those profiles
   into separate structural types?
 
-### 5.3 Domain Context as process-neutral vs process-specific examples
+### 5.2 Domain Context as process-neutral vs process-specific examples
 
 `por-v0.3.0-role-emergence-principle.md` correctly states that Domain Context
 should not be split into Creation Domain, Retrieve Domain, and Reconstruction
@@ -277,7 +296,7 @@ Discussion point:
 - Should the vocabulary distinguish structural identity from process role more
   strictly?
 
-### 5.4 Domain use in Creation vs Domain masking in Retrieve
+### 5.3 Domain use in Creation vs Domain masking in Retrieve
 
 The newer model allows Creation to use Domain Context while Retrieve may mask,
 replace, or merge Domain Context to enable cross-domain retrieval.
@@ -291,7 +310,7 @@ Discussion point:
 - If Retrieval masks Domain Context, what Domain trace should remain for audit,
   ranking, and later Reconstruction?
 
-### 5.5 Domain Distribution and Role Emergence
+### 5.4 Domain Distribution and Role Emergence
 
 `por-v0.3.0-domain-distribution.md` treats Domain Distribution as a key concept
 for Retrieval, Harmony, Evidence Landscape, and Reconstruction.
@@ -306,7 +325,7 @@ Discussion point:
 - Should `domain_context_id` and `domain_distribution_id` always both appear in
   traces, or should Domain Context contain the distribution reference?
 
-### 5.6 Skeleton neutrality vs Domain-informed slot expectations
+### 5.5 Skeleton neutrality vs Domain-informed slot expectations
 
 `por-v0.3.0-three-process-model.md` recommends that Skeleton Precursor and
 Skeleton Family remain as domain-neutral as practical.
@@ -322,7 +341,7 @@ Discussion point:
 - Should Domain-specific Skeleton Family extensions be allowed, or only
   Domain-specific slot expectations?
 
-### 5.7 POR front-end artifacts vs stored IdeaMark Document
+### 5.6 POR front-end artifacts vs stored IdeaMark Document
 
 `por-v0.3.0-reconstruction-front-end.md` and
 `por-v0.3.0-harmony-score-flow.md` emphasize session artifacts such as fragments,
@@ -338,7 +357,7 @@ Discussion point:
 - How should stored IdeaMark Documents reference external fragment/session
   artifacts when needed?
 
-### 5.8 Evidence Landscape generation timing
+### 5.7 Evidence Landscape generation timing
 
 `por-v0.3.0-evidence-landscape.md` treats Evidence Landscape as a structure after
 retrieval and Harmony evaluation.
@@ -353,7 +372,7 @@ Discussion point:
 - Should there be a distinct process stage between Retrieve and Reconstruction,
   such as `Harmonize` or `Landscape Build`?
 
-### 5.9 Candidate Model vs Model Vector vs Element
+### 5.8 Candidate Model vs Model Vector vs Element
 
 The notes use several related concepts:
 
@@ -370,7 +389,7 @@ Discussion point:
   Vector, Candidate Model Vector, Candidate Model, Element, and output claim?
 - Are Candidate Models created before Elements, after Elements, or in parallel?
 
-### 5.10 Domain comparison across landscapes
+### 5.9 Domain comparison across landscapes
 
 `por-v0.3.0-domain-distribution.md` says Harmony Credits from different Domain
 Distributions should not be compared without Domain context.
@@ -384,7 +403,7 @@ Discussion point:
   be compared with credits produced under preserved Domain Context?
 - Should merged-domain landscapes record per-candidate source-domain traces?
 
-### 5.11 Numeric credit and probability language
+### 5.10 Numeric credit and probability language
 
 Multiple notes warn that Harmony Credit is not truth probability.
 
@@ -400,12 +419,11 @@ Discussion point:
 
 ## 6. Suggested Next Discussion Order
 
-1. Standardize terminology: Creation vs Generate.
-2. Define the lifecycle of Fragment / Evidence / Vector / Candidate / Element.
-3. Decide the process boundary for Harmony and Evidence Landscape.
-4. Decide how Domain Context masking, replacement, and merging are traced.
-5. Decide what gets stored in IdeaMark Document versus POR session artifacts.
-6. After theory discussion stabilizes, create the v0.3.0 implementation-scope
+1. Define the lifecycle of Fragment / Evidence / Vector / Candidate / Element.
+2. Decide the process boundary for Harmony and Evidence Landscape.
+3. Decide how Domain Context masking, replacement, and merging are traced.
+4. Decide what gets stored in IdeaMark Document versus POR session artifacts.
+5. After theory discussion stabilizes, create the v0.3.0 implementation-scope
    plan.
 
 ## 7. Current Working Position
@@ -416,6 +434,8 @@ The current v0.3.0 working position is:
 - IdeaMark Documents are projection-dependent indexes created from Original
   Sources.
 - Creation, Retrieve, and Reconstruction are separate processes.
+- Generate is a general action that can occur inside multiple processes; it is
+  not a top-level process parallel to Creation / Retrieve / Reconstruction.
 - Projection, Domain Context, and IdeaMark Document should remain process-neutral
   structures.
 - Their roles emerge from the process in which they are used.
