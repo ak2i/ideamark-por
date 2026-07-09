@@ -29,7 +29,23 @@ implementation.
    - Lists run commands, outputs to inspect, known leftovers, and next testing
      steps.
 
-### 1.2 Core v0.3.0 theory flow
+### 1.2 Vocabulary and decisions
+
+Read these before comparing the theory notes, because some older files still
+contain legacy wording.
+
+1. `glossary.md`
+   - Defines current v0.3.0 vocabulary.
+   - Marks terms as standardized, provisional, or legacy.
+   - Standardizes `Harmony Credit` and `fragment_quality`.
+
+2. `por-v0.3.0-terminology-decisions.md`
+   - Records resolved terminology decisions.
+   - Explains why `Harmony Score` is legacy as a general term.
+   - Explains why `Local Confidence` should be replaced by observable
+     `fragment_quality`.
+
+### 1.3 Core v0.3.0 theory flow
 
 Read these next as the conceptual arc of v0.3.0.
 
@@ -121,75 +137,44 @@ Reconstruction:
 
 ## 3. Working Vocabulary
 
-### Projection
+Use `glossary.md` as the primary vocabulary reference.
 
-A process-neutral structure that can be used differently by process.
+This README keeps only the short operational summary below.
 
-- In Creation: Index Construction Policy.
-- In Retrieve: Query / Retrieval Policy.
-- In Reconstruction: Material Processing Direction.
-- In Harmony: candidate evaluation / weighting policy.
+### Standardized
 
-### Domain Context
+- Creation
+- Retrieve
+- Reconstruction
+- Role Emergence Principle
+- Projection
+- Domain Context
+- Domain Distribution
+- IdeaMark Document
+- Original Source
+- Harmony Credit
+- fragment_quality
+- Evidence Landscape
 
-A process-neutral description of a population, convention, distribution, or
-knowledge-space boundary.
+### Provisional
 
-It may be explicit, emergent, or hybrid.
+- Element
+- Idea Fragment
+- Evidence Fragment
+- Evidence Set
+- Candidate Space
+- Candidate Model
+- Model Vector
+- Evidence Vector
+- Operational Prior
+- Skeleton Precursor
+- Micro Skeleton
+- Skeleton Family
 
-The process decides whether to preserve, mask, replace, or merge it.
+### Legacy / avoid in new text
 
-### IdeaMark Document
-
-A process-neutral structured document created from Original Source under a
-Projection.
-
-- In Retrieve: precomputed index.
-- In Reconstruction: annotation over Original Source fragments.
-- In Domain Distribution: structured population sample.
-
-### Harmony Credit
-
-A contextual, relative credit assigned inside a finite Candidate Space and
-Evidence Set.
-
-It is not truth probability.
-
-`Harmony Credit` is the standardized term for v0.3.0 theory. Legacy references to
-`Harmony Score` should be treated as older wording unless they specifically refer
-to a numeric sub-score or component value.
-
-### fragment_quality
-
-Observable quality signals for a fragment, source anchor, boundary, detector
-output, or local label.
-
-`fragment_quality` replaces probability-like `Local Confidence` as the preferred
-concept.
-
-It should be derived from observable components such as:
-
-- anchor exactness;
-- boundary stability;
-- detector agreement;
-- source-structure alignment;
-- label ambiguity;
-- duplicate or near-duplicate support;
-- provenance quality.
-
-### Evidence Landscape
-
-A structured landscape of selected and non-selected candidate models, their
-Harmony Credits, vector differences, evidence, counter-evidence, and relations.
-
-### Element
-
-A reconstruction-time material prepared from IdeaMark annotations and Original
-Source fragments.
-
-```text
-IdeaMark annotation + Original Source fragment -> Element
-```
+- Harmony Score as a general term; use Harmony Credit instead.
+- Local Confidence; use fragment_quality instead.
 
 ## 4. Resolved Decisions
 
