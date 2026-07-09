@@ -30,7 +30,7 @@ being discussed historically.
 
 Status: standardized
 
-The process that creates an IdeaMark Document for storage in a DB.
+A top-level process that creates an IdeaMark Document for storage in a DB.
 
 Typical input:
 
@@ -45,6 +45,26 @@ IdeaMark Document
 ```
 
 In Creation, Projection functions as **Index Construction Policy**.
+
+Creation is broader than the general action `generate`. It may include:
+
+- generating an IdeaMark Document;
+- validating it;
+- assigning or normalizing IDs;
+- recording Projection and Domain Context traces;
+- preserving source anchors;
+- preparing persistence metadata;
+- storing the resulting IdeaMark Document in a DB.
+
+Working relationship:
+
+```text
+Creation process
+  -> generate IdeaMark Document
+  -> validate
+  -> record trace
+  -> persist
+```
 
 ### Retrieve
 
@@ -70,6 +90,52 @@ In Reconstruction, Projection functions as **Material Processing Direction**.
 
 The output is an expression intended to activate or support user Intellectual
 Activity.
+
+### Generate
+
+Status: standardized as general action, not a top-level POR process
+
+A general action that produces a new artifact.
+
+Generate is intentionally kept as a broad verb because it appears across IdeaMark
+Core, CLI, POR, and downstream workflows with many possible targets.
+
+Generation may occur inside any process.
+
+Examples:
+
+```text
+Creation:
+  generate IdeaMark Document
+
+Retrieve:
+  generate Candidate Space
+  generate Evidence Set
+  generate ranking material
+
+Harmony:
+  generate Candidate Model Vector
+  generate Harmony Credit components
+
+Reconstruction:
+  generate Element
+  generate narrative
+  generate slide outline
+  generate OKF / TPCG / report / script
+```
+
+Therefore, `Generate` should not be treated as parallel to `Creation`, `Retrieve`,
+and `Reconstruction` in the top-level process model.
+
+Recommended distinction:
+
+```text
+Process:
+  Creation / Retrieve / Reconstruction
+
+Action:
+  generate / validate / persist / search / match / rank / compose / render
+```
 
 ### Role Emergence Principle
 
@@ -441,14 +507,13 @@ probability.
 
 These terms still need boundary discussion:
 
-1. Generate vs Creation.
-2. Idea Fragment vs Evidence Fragment vs Element.
-3. Candidate Model vs Candidate Model Vector.
-4. Evidence Landscape generation timing.
-5. Domain Distribution as standalone artifact vs part of Domain Context.
-6. Operational Prior ownership and persistence.
-7. Whether Skeleton Family can have domain-specific extensions.
-8. Whether decimal Harmony Credit values should be user-visible.
+1. Idea Fragment vs Evidence Fragment vs Element.
+2. Candidate Model vs Candidate Model Vector.
+3. Evidence Landscape generation timing.
+4. Domain Distribution as standalone artifact vs part of Domain Context.
+5. Operational Prior ownership and persistence.
+6. Whether Skeleton Family can have domain-specific extensions.
+7. Whether decimal Harmony Credit values should be user-visible.
 
 ## 6. Cleanup Rule
 
@@ -457,5 +522,6 @@ When updating v0.3.0 notes:
 - Use this glossary as the preferred vocabulary source.
 - Replace general `Harmony Score` wording with `Harmony Credit`.
 - Replace `Local Confidence` with `fragment_quality`.
+- Treat `Generate` as a general action, not as the top-level Creation process.
 - Keep unresolved terms marked as provisional rather than over-normalizing them.
 - Preserve open questions in `README.md` until explicitly resolved.
