@@ -505,3 +505,266 @@ For v0.3.0, the recommended working position is:
 This keeps POR fast and recall-oriented while preparing the downstream pipeline
 for evidence-aware, counter-evidence-aware, and hypothesis-level-controlled
 reconstruction.
+
+## 14. Harmony Score as Statistical Model-Vector Harmonization
+
+### 14.1 Motivation
+
+Harmony Score should not require a fixed dictionary of named models.
+
+A model can instead be treated as a statistical object produced from a
+combination of parameters, observed elements, ranges, relations, frequencies, and
+co-occurrence patterns.
+
+In this interpretation:
+
+```text
+fixed model dictionary
+  -> avoided when possible
+
+statistical model vector
+  -> derived from parameter combinations and evidence distributions
+```
+
+This is important because many useful reconstruction targets do not have a
+stable human-readable category name in advance. They may still have a stable
+statistical shape.
+
+### 14.2 Model Vector
+
+A **Model Vector** is a structured representation of a candidate model in a
+parameter space selected by Projection or Skeleton Family.
+
+Example dimensions:
+
+```yaml
+model_vector_dimensions:
+  track_type: categorical
+  time_window_from: temporal
+  time_window_to: temporal
+  time_window_distance: numeric_or_range
+  place_from: spatial_or_symbolic
+  place_to: spatial_or_symbolic
+  relation_type: categorical
+  facet_count: count
+  evidence_count: count
+  counter_evidence_count: count
+  constraint_count: count
+  cooccurrence_frequency: numeric
+```
+
+The concrete dimensions are not globally fixed. They are selected by the
+Projection, Skeleton Family, or domain-specific adapter.
+
+### 14.3 Evidence Vector
+
+Evidence Fragments can be projected into the same parameter space as a Model
+Vector.
+
+```text
+Evidence Fragment
+  -> parameter extraction
+  -> Evidence Vector
+  -> comparison with Candidate Model Vector
+```
+
+An Evidence Vector may be incomplete. Missing dimensions do not automatically
+invalidate it. Instead, missingness becomes part of the Harmony Evaluation.
+
+Example:
+
+```yaml
+evidence_vector:
+  fragment_id: FRAG-003
+  dimensions:
+    track_type: person_flow
+    time_window_from: 3
+    place_from: A
+    place_to: E
+    facet_count: 1
+  missing_dimensions:
+    - time_window_to
+    - relation_type
+```
+
+### 14.4 Harmonize Operations
+
+Statistical Model-Vector Harmonization supports at least three operations.
+
+#### Completion Harmonize
+
+Completion fills missing or ambiguous dimensions using nearby model vectors,
+ranges, co-occurrence statistics, or constraints.
+
+```text
+partial evidence vector
+  + neighboring model vectors
+  -> completed candidate vector
+```
+
+This is useful when a fragment contains enough structure to suggest a model but
+not enough information to fill every dimension.
+
+#### Synthesis Harmonize
+
+Synthesis combines multiple fragments or partial model vectors into a new
+candidate model vector.
+
+```text
+fragment vector A
+fragment vector B
+fragment vector C
+  -> synthesized candidate model vector
+```
+
+This allows Reconstruction to build a candidate model that does not appear as a
+single explicit fragment in the source.
+
+#### Hypothesis Harmonize
+
+Hypothesis Harmonize keeps unknown or unobserved dimensions as explicit variables
+rather than discarding the model.
+
+```text
+candidate model vector with unknown dimensions
+  -> hypothesis model vector
+  -> evaluated against available evidence and constraints
+```
+
+This makes it possible to handle detection models with unknown elements as
+hypothesis models. Unknown dimensions become inspectable and testable, not hidden
+free-form assumptions.
+
+### 14.5 Harmony Score from Statistical Components
+
+Harmony Score can be calculated from observable statistical components rather
+than subjective scalar values.
+
+Examples:
+
+```yaml
+statistical_harmony_components:
+  key_element_match_count: 3
+  key_element_required_count: 4
+  range_element_match_count: 2
+  range_element_required_count: 3
+  sampling_support_count: 12
+  sampling_candidate_count: 30
+  cooccurrence_frequency: 48
+  nearest_model_distance: 0.18
+  counter_evidence_collision_count: 1
+  unresolved_unknown_dimension_count: 2
+```
+
+This avoids relying on vague values such as "validity = 0.7" when the value range
+cannot be defined cleanly.
+
+A scoring layer may then normalize or combine these observable statistics:
+
+```yaml
+statistical_harmony_score:
+  method: weighted_observable_components
+  components:
+    key_match_ratio: 0.75
+    range_match_ratio: 0.67
+    sampling_support_ratio: 0.40
+    cooccurrence_support: 0.82
+    nearest_model_similarity: 0.82
+    counter_evidence_penalty: 0.15
+    unknown_dimension_penalty: 0.10
+  score: 0.68
+```
+
+The score remains an explanatory-fit score, not a truth probability.
+
+### 14.6 Projection Role
+
+Projection determines the parameter space.
+
+It should be able to specify:
+
+```yaml
+projection_controls:
+  model_vector_policy:
+    enabled: true
+    dimensions:
+      - track_type
+      - time_window_from
+      - time_window_to
+      - time_window_distance
+      - place_from
+      - place_to
+      - relation_type
+      - facet_count
+    missing_dimension_policy: keep_as_unknown
+    allow_completion: true
+    allow_synthesis: true
+    allow_hypothesis_vectors: true
+```
+
+This keeps the system from relying on one global model ontology. Different
+Projections may define different parameter spaces for the same source.
+
+### 14.7 Relationship to Skeleton Family
+
+Skeleton Families should not be treated as exhaustive dictionaries of meaning.
+
+They may instead define which parameter dimensions are useful for reconstructing
+a particular intellectual activity.
+
+Example:
+
+```yaml
+skeleton_family:
+  id: causal_explanation_family
+  accepts_model_vectors:
+    required_dimensions:
+      - relation_type
+      - cause_candidate
+      - effect_candidate
+    optional_dimensions:
+      - time_delay
+      - confidence_hint
+      - counter_evidence_count
+      - constraint_count
+  harmony_weights:
+    relation_type_match: 0.25
+    cause_effect_alignment: 0.30
+    temporal_plausibility: 0.15
+    counter_evidence_handling: 0.20
+    source_anchor_integrity: 0.10
+```
+
+This preserves the role of Skeleton Family as a reconstruction aid while avoiding
+a fixed dictionary of all possible models.
+
+### 14.8 Session Artifacts
+
+The following session artifacts may be useful for experiments:
+
+```text
+model_vectors.jsonl
+fragment_vectors.jsonl
+vector_matches.jsonl
+harmonize_operations.jsonl
+statistical_harmony_evaluations.jsonl
+```
+
+These should initially remain POR session artifacts. Only stable summaries or
+references should be promoted into IdeaMark Core documents.
+
+### 14.9 Working Hypothesis
+
+The working hypothesis is:
+
+- POR collects anchored Evidence Fragments and weak SP/MS hints.
+- Projection defines the parameter space for model-vector comparison.
+- Evidence Fragments are converted into Evidence Vectors.
+- Reconstruction creates Candidate Model Vectors.
+- Harmonize operations complete, synthesize, or preserve unknown dimensions.
+- Harmony Score is computed from observable statistical components.
+- Unknown elements remain explicit and testable rather than becoming hidden
+  natural-language assumptions.
+
+This makes Harmony Score useful not only for selecting among existing candidate
+models, but also for constructing new hypothesis models from incomplete evidence.
