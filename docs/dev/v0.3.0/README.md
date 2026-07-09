@@ -41,11 +41,14 @@ Read these next as the conceptual arc of v0.3.0.
      finalizing meaning.
 
 2. `por-v0.3.0-harmony-score-flow.md`
-   - Introduces Harmony Score / Harmony Credit as an evaluation layer after
+   - Introduces the evaluation layer now standardized as **Harmony Credit** after
      candidate models exist.
-   - Separates local extraction confidence from model-level harmony.
+   - Replaces probability-like Local Confidence with observable
+     `fragment_quality` components as the preferred direction.
    - Adds Statistical Model-Vector Harmonization: Evidence Vectors, Model
      Vectors, completion, synthesis, and hypothesis handling.
+   - Note: the file name and some internal legacy wording may still say Harmony
+     Score until the naming cleanup is completed.
 
 3. `por-v0.3.0-evidence-landscape.md`
    - Generalizes counter-evidence into differently directed evidence.
@@ -152,6 +155,28 @@ Evidence Set.
 
 It is not truth probability.
 
+`Harmony Credit` is the standardized term for v0.3.0 theory. Legacy references to
+`Harmony Score` should be treated as older wording unless they specifically refer
+to a numeric sub-score or component value.
+
+### fragment_quality
+
+Observable quality signals for a fragment, source anchor, boundary, detector
+output, or local label.
+
+`fragment_quality` replaces probability-like `Local Confidence` as the preferred
+concept.
+
+It should be derived from observable components such as:
+
+- anchor exactness;
+- boundary stability;
+- detector agreement;
+- source-structure alignment;
+- label ambiguity;
+- duplicate or near-duplicate support;
+- provenance quality.
+
 ### Evidence Landscape
 
 A structured landscape of selected and non-selected candidate models, their
@@ -166,12 +191,63 @@ Source fragments.
 IdeaMark annotation + Original Source fragment -> Element
 ```
 
-## 4. Potential Inconsistencies / Discussion Points
+## 4. Resolved Decisions
+
+The following points have been decided for the current v0.3.0 theory track.
+
+### 4.1 Harmony Score vs Harmony Credit
+
+Decision:
+
+- Use **Harmony Credit** as the formal term.
+- Treat old `Harmony Score` wording as legacy unless it specifically refers to a
+  numeric sub-score or implementation-level score component.
+- Keep emphasizing that Harmony Credit is contextual and relative, not truth
+  probability.
+
+Rationale:
+
+`Credit` better captures provisional contextual support within a finite Evidence
+Set, Candidate Space, Evaluation Policy, Projection, and Domain context.
+
+### 4.2 Local Confidence vs fragment_quality
+
+Decision:
+
+- Replace probability-like **Local Confidence** with observable
+  **fragment_quality**.
+- `fragment_quality` should be derived from observable components rather than
+  treated as an arbitrary scalar probability.
+- Numeric rollups may be produced later, but the source components should remain
+  inspectable.
+
+Rationale:
+
+Different detectors produce different kinds of signals. LLM logprobs, TinyBERT
+softmax, regex matches, source anchors, and human labels should not be collapsed
+into one generic confidence value without preserving their observable basis.
+
+### 4.3 v0.3.0 theory vs implementation scope
+
+Decision:
+
+- Continue discussing v0.3.0 theory until the main conceptual issues are mostly
+  exhausted.
+- After that, reflect the settled subset into an implementation-scope plan.
+- Do not prematurely force every theory component into immediate v0.3.0
+  implementation.
+
+Rationale:
+
+The theory notes now contain broad architectural material. Implementation scope
+should be derived after the conceptual model stabilizes enough to avoid rework.
+
+## 5. Potential Inconsistencies / Discussion Points
 
 The following points are intentionally not resolved in this README. They should
 be treated as design questions for follow-up discussion.
 
-### 4.1 Generate vs Creation terminology
+### 5.1 Generate vs Creation terminology
 
 `por-v0.3.0-domain-distribution.md` uses **Generate / Retrieve / Reconstruct** in
 some sections, while `por-v0.3.0-three-process-model.md` standardizes the process
@@ -184,35 +260,7 @@ Discussion point:
   while `Creation` is the broader process that includes domain trace, source
   anchoring, and persistence?
 
-### 4.2 Harmony Score vs Harmony Credit
-
-`por-v0.3.0-harmony-score-flow.md` mostly uses **Harmony Score**, while later
-notes increasingly use **Harmony Credit** to avoid implying truth probability.
-
-Discussion point:
-
-- Should the formal term be `Harmony Credit`, with `Harmony Score` reserved for
-  numeric components?
-- Or should `Harmony Score` remain the general term, with strong language stating
-  that it is contextual credit, not probability?
-
-### 4.3 Local Confidence vs observable fragment quality
-
-`por-v0.3.0-harmony-score-flow.md` still contains local confidence examples,
-such as anchor confidence, boundary confidence, and label confidence.
-
-Later discussion suggests these should probably be derived from observable
-fragment-quality components rather than treated as direct probability-like
-values.
-
-Discussion point:
-
-- Should local confidence be renamed to `fragment_quality`, `fragment_reliability`,
-  or `fragment_observability`?
-- Should numeric local confidence be stored, or always derived from observable
-  components?
-
-### 4.4 One Projection or process-specific Projection profiles
+### 5.2 One Projection or process-specific Projection profiles
 
 `por-v0.3.0-three-process-model.md` asks whether one Projection can safely serve
 Creation, Retrieve, and Reconstruction, or whether separate Projection profiles
@@ -228,7 +276,7 @@ Discussion point:
 - Should a Projection file support named profiles without turning those profiles
   into separate structural types?
 
-### 4.5 Domain Context as process-neutral vs process-specific examples
+### 5.3 Domain Context as process-neutral vs process-specific examples
 
 `por-v0.3.0-role-emergence-principle.md` correctly states that Domain Context
 should not be split into Creation Domain, Retrieve Domain, and Reconstruction
@@ -244,7 +292,7 @@ Discussion point:
 - Should the vocabulary distinguish structural identity from process role more
   strictly?
 
-### 4.6 Domain use in Creation vs Domain masking in Retrieve
+### 5.4 Domain use in Creation vs Domain masking in Retrieve
 
 The newer model allows Creation to use Domain Context while Retrieve may mask,
 replace, or merge Domain Context to enable cross-domain retrieval.
@@ -258,7 +306,7 @@ Discussion point:
 - If Retrieval masks Domain Context, what Domain trace should remain for audit,
   ranking, and later Reconstruction?
 
-### 4.7 Domain Distribution and Role Emergence
+### 5.5 Domain Distribution and Role Emergence
 
 `por-v0.3.0-domain-distribution.md` treats Domain Distribution as a key concept
 for Retrieval, Harmony, Evidence Landscape, and Reconstruction.
@@ -273,7 +321,7 @@ Discussion point:
 - Should `domain_context_id` and `domain_distribution_id` always both appear in
   traces, or should Domain Context contain the distribution reference?
 
-### 4.8 Skeleton neutrality vs Domain-informed slot expectations
+### 5.6 Skeleton neutrality vs Domain-informed slot expectations
 
 `por-v0.3.0-three-process-model.md` recommends that Skeleton Precursor and
 Skeleton Family remain as domain-neutral as practical.
@@ -289,7 +337,7 @@ Discussion point:
 - Should Domain-specific Skeleton Family extensions be allowed, or only
   Domain-specific slot expectations?
 
-### 4.9 POR front-end artifacts vs stored IdeaMark Document
+### 5.7 POR front-end artifacts vs stored IdeaMark Document
 
 `por-v0.3.0-reconstruction-front-end.md` and
 `por-v0.3.0-harmony-score-flow.md` emphasize session artifacts such as fragments,
@@ -305,7 +353,7 @@ Discussion point:
 - How should stored IdeaMark Documents reference external fragment/session
   artifacts when needed?
 
-### 4.10 Evidence Landscape generation timing
+### 5.8 Evidence Landscape generation timing
 
 `por-v0.3.0-evidence-landscape.md` treats Evidence Landscape as a structure after
 retrieval and Harmony evaluation.
@@ -320,7 +368,7 @@ Discussion point:
 - Should there be a distinct process stage between Retrieve and Reconstruction,
   such as `Harmonize` or `Landscape Build`?
 
-### 4.11 Candidate Model vs Model Vector vs Element
+### 5.9 Candidate Model vs Model Vector vs Element
 
 The notes use several related concepts:
 
@@ -337,7 +385,7 @@ Discussion point:
   Vector, Candidate Model Vector, Candidate Model, Element, and output claim?
 - Are Candidate Models created before Elements, after Elements, or in parallel?
 
-### 4.12 Domain comparison across landscapes
+### 5.10 Domain comparison across landscapes
 
 `por-v0.3.0-domain-distribution.md` says Harmony Credits from different Domain
 Distributions should not be compared without Domain context.
@@ -351,45 +399,31 @@ Discussion point:
   be compared with credits produced under preserved Domain Context?
 - Should merged-domain landscapes record per-candidate source-domain traces?
 
-### 4.13 Confidence, Credit, and probability language
+### 5.11 Numeric credit and probability language
 
-Multiple notes warn that Harmony Score / Credit is not truth probability.
+Multiple notes warn that Harmony Credit is not truth probability.
 
 However, examples still use decimal values that can easily be read as probability
 or confidence.
 
 Discussion point:
 
-- Should examples use ratios/counts first and only derive decimal scores later?
+- Should examples use ratios/counts first and only derive decimal credit values
+  later?
 - Should numeric fields be named `credit`, `fit`, `rank_score`, or something else
   to reduce probability-like interpretation?
 
-### 4.14 v0.3.0 theory vs implementation scope
+## 6. Suggested Next Discussion Order
 
-The theory notes now describe a broad architecture involving Domain Distribution,
-Evidence Landscape, Role Emergence, Model Vectors, and Reconstruction policies.
-
-The operational notes are still grounded in local LLM extraction, output guards,
-raw matches, deduplication, and M1 assembly.
-
-Discussion point:
-
-- Which theory components belong in the immediate v0.3.0 implementation?
-- Which should remain conceptual until v0.4.0 or later?
-- Should README maintain a milestone map from theory notes to implementation
-  tasks?
-
-## 5. Suggested Next Discussion Order
-
-1. Standardize terminology: Creation vs Generate, Harmony Score vs Harmony
-   Credit.
+1. Standardize terminology: Creation vs Generate.
 2. Define the lifecycle of Fragment / Evidence / Vector / Candidate / Element.
 3. Decide the process boundary for Harmony and Evidence Landscape.
 4. Decide how Domain Context masking, replacement, and merging are traced.
 5. Decide what gets stored in IdeaMark Document versus POR session artifacts.
-6. Decide the v0.3.0 implementation subset.
+6. After theory discussion stabilizes, create the v0.3.0 implementation-scope
+   plan.
 
-## 6. Current Working Position
+## 7. Current Working Position
 
 The current v0.3.0 working position is:
 
@@ -404,7 +438,11 @@ The current v0.3.0 working position is:
   preserved, masked, replaced, or merged by process policy.
 - Harmony Credit is contextual and relative to a finite Evidence Set, Candidate
   Space, Evaluation Policy, Projection, and Domain context.
+- `fragment_quality` replaces probability-like local confidence and should be
+  derived from observable components.
 - Evidence Landscape preserves selected and non-selected candidates so that
   Reconstruction can use winner-only, guarded, fusion, contrastive, or
   exploratory policies.
+- Theory discussion should continue before deriving the v0.3.0 implementation
+  scope.
 - Open contradictions should be kept visible until the theory stabilizes.
