@@ -6,6 +6,7 @@ Baseline:
 - `docs/dev/v0.3.0/por-v0.3.0-domain-distribution.md`
 - `docs/dev/v0.3.0/por-v0.3.0-evidence-landscape.md`
 - `docs/dev/v0.3.0/por-v0.3.0-harmony-score-flow.md`
+- `docs/dev/v0.3.0/por-v0.3.0-design-pattern-principles.md`
 Target Core spec: `ideamark-core-v1.2.0`
 
 ## 1. Purpose
@@ -69,7 +70,7 @@ The intended model is:
 ```text
 one Domain Context description
   -> used by Creation as index construction context
-  -> used by Retrieve as population / prior / mask context
+  -> used by Retrieve as population / prior / search parameter context
   -> used by Reconstruction as expression adaptation context
 ```
 
@@ -84,7 +85,81 @@ one Projection description
 
 The role is real, but it is not encoded by multiplying the structure.
 
-## 4. Projection as a Process-Neutral Structure
+## 4. Why Process Neutrality Is a Design Pattern
+
+Process neutrality is not only an abstraction technique. It is an IdeaMark design
+pattern for reducing future implementation and communication costs.
+
+### 4.1 Future processes are not yet known
+
+Creation, Retrieve, Reconstruction, and Harmony may not be the complete process
+set.
+
+Future systems may add Review, Compare, Simulate, Teach, Audit, Plan, Execute, or
+other processes.
+
+If Projection, Domain Context, and IdeaMark Document remain process-neutral, a
+new process can use an existing structure directly and assign a new role without
+requiring a new structural type.
+
+```text
+Stable process-neutral structure
+  + newly introduced process
+  -> newly assigned runtime role
+```
+
+### 4.2 Structures become shared vocabulary
+
+A process-neutral structure can be selected and applied directly in a new scene.
+
+The results of using the same structure can accumulate around it:
+
+- what was created from it;
+- what was retrieved with it;
+- what was reconstructed from it;
+- what succeeded or failed;
+- what additional context was required;
+- what process-specific supplements were useful.
+
+As those results accumulate, the structure becomes a common topic and shared
+vocabulary for people, tools, and LLMs.
+
+This can substantially reduce communication cost because participants can refer
+to the same Projection, Domain Context, or IdeaMark Document rather than
+re-explaining the whole scene.
+
+### 4.3 Optional extensions are acceptable
+
+Process-neutral does not mean every structure must contain all information needed
+by every process.
+
+The preferred pattern is:
+
+```text
+process-neutral structure
+  + optional extension
+  + process parameters
+  + traceable supplementation
+  -> process input
+```
+
+A process may read an extension it understands. Other processes may ignore that
+extension and continue to use the common structure.
+
+### 4.4 LLM-assisted supplementation lowers the cost
+
+LLMs and related tools make it comparatively inexpensive to inspect a structure
+and determine:
+
+- what is missing for the current scene;
+- which fields can be used as-is;
+- what additional context should be requested;
+- what assumptions or optional supplements should be recorded.
+
+This makes stable shared structures more practical than prematurely creating
+separate process-specific structures.
+
+## 5. Projection as a Process-Neutral Structure
 
 Projection is a structural description of how knowledge should be viewed,
 selected, decomposed, weighted, or reconstructed.
@@ -118,9 +193,9 @@ projection:
 ```
 
 The same Projection may be used by different processes. Each process reads the
-parts relevant to its role.
+parts relevant to its role and may ignore unrelated optional extensions.
 
-## 5. Domain Context as a Process-Neutral Structure
+## 6. Domain Context as a Process-Neutral Structure
 
 Domain Context is a description of the population, convention, distribution, or
 knowledge-space boundary being used.
@@ -147,13 +222,46 @@ Its role changes by process:
 | Process | Domain Context role |
 | --- | --- |
 | Creation | helps construct a projection-dependent IdeaMark index |
-| Retrieve | helps define, replace, mask, or merge the retrieval population |
+| Retrieve | acts as a semantically important search / exploration parameter |
 | Reconstruction | helps adapt expression, terminology, and explanation style |
 | Harmony | helps interpret the finite candidate space and operational prior |
 
 The structure is the same. The process determines the role.
 
-## 6. Domain Context May Be Preserved, Masked, Replaced, or Merged
+## 7. Domain Is Semantically Heavy but Operationally a Parameter
+
+Domain has substantial semantic influence in Retrieve, but it is still one
+parameter among the retrieval and exploration controls.
+
+Therefore, the retrieval process may specify Domain in multiple forms:
+
+```yaml
+retrieve_domain_parameter:
+  mode: fixed
+  include: [agricultural_pharmacology]
+```
+
+```yaml
+retrieve_domain_parameter:
+  mode: range
+  include: [agriculture, civil_engineering, municipal_operations]
+```
+
+```yaml
+retrieve_domain_parameter:
+  mode: type
+  include_domain_types: [expert_domain, operational_domain]
+```
+
+```yaml
+retrieve_domain_parameter:
+  mode: unrestricted
+```
+
+This supports domain-bound search, cross-domain search, domain-type search, and
+unrestricted exploration without changing the Domain Context structure.
+
+## 8. Domain Context May Be Preserved, Masked, Replaced, or Merged
 
 A process may choose how to use Domain Context.
 
@@ -164,52 +272,38 @@ domain_usage_policy:
   mode: preserve | mask | replace | merge
 ```
 
+These modes are process parameter policies, not separate Domain Context types.
+
 ### Preserve
 
-Use the Domain Context recorded during Creation.
-
-```text
-Creation Domain Context: agricultural_pharmacology
-Retrieve Domain Context: agricultural_pharmacology
-```
-
-This is useful for conventional domain-bound retrieval.
+Use Domain Context as a retrieval constraint or prior.
 
 ### Mask
 
-Ignore or weaken the Creation Domain Context during retrieval.
+Do not use the recorded Domain Context as a search constraint, while preserving
+it for traceability, ranking explanation, Harmony interpretation, or later
+Reconstruction.
 
-```text
-Creation Domain Context: agricultural_pharmacology
-Retrieve: domain masked
+```yaml
+retrieval_context:
+  domain_usage_policy:
+    mode: mask
+  domain_trace:
+    original_domain_context_id: DCTX-AGPHARM
+    masked_for_search: true
+    retained_for_audit: true
 ```
-
-This enables cross-domain retrieval because materials are not filtered only by
-their original domain context.
 
 ### Replace
 
-Use a different Domain Context for the process.
-
-```text
-Creation Domain Context: agricultural_pharmacology
-Reconstruction Domain Context: municipal_land_reallocation_staff
-```
-
-This is useful when source knowledge was created in one expert domain but must be
-explained to another practical audience.
+Use another Domain Context as the active process parameter while preserving the
+original context in the trace.
 
 ### Merge
 
-Use multiple Domain Contexts together.
+Use multiple Domain Contexts as a combined retrieval or reconstruction parameter.
 
-```text
-Retrieve Domains: agricultural_pharmacology + civil_engineering + municipal_operations
-```
-
-This is useful for interdisciplinary search and synthesis.
-
-## 7. Example: Agricultural Pharmacology to Municipal Land Reallocation
+## 9. Example: Agricultural Pharmacology to Municipal Land Reallocation
 
 A typical cross-domain reuse case:
 
@@ -218,28 +312,28 @@ Original Source:
   agricultural pharmacology report
 
 Creation:
-  Projection + Domain Context = agricultural_pharmacology
+  Projection + Domain Context used in Creation = agricultural_pharmacology
   -> IdeaMark Document created as an index over specialist knowledge
 
 Retrieve:
   Projection requests materials for land reallocation planning
-  Domain usage policy = mask or merge
+  Domain parameter policy = mask, range, or merge
   -> retrieve agricultural, civil-engineering, land-use, and municipal-operation materials
 
 Reconstruction:
-  Projection + Domain Context = municipal_land_reallocation_staff
+  Projection + Domain Context used in Reconstruction = municipal_land_reallocation_staff
   -> generate an explanation that municipal staff can understand and act on
 ```
 
 This does not require three different structural kinds of Domain Context.
 
-It requires one reusable Domain Context structure whose role is assigned by the
-process.
+It requires one reusable Domain Context structure whose role and usage policy are
+assigned by the process.
 
-## 8. Relationship to Domain Distribution
+## 10. Relationship to Domain Distribution
 
-Domain Distribution still matters, but it should be understood as part of a
-process-neutral Domain Context description.
+Domain Distribution still matters, but it should be understood as part of or
+referenced by a process-neutral Domain Context description.
 
 A Domain Context may contain:
 
@@ -259,9 +353,9 @@ domain_context:
 Creation, Retrieve, and Reconstruction can all use this same Domain Context, but
 they may use it differently.
 
-Therefore, Domain Context is not the same as process role.
+Therefore, Domain Context is not the same as process role or process parameter.
 
-## 9. Relationship to Three-Process Model
+## 11. Relationship to Three-Process Model
 
 The Three-Process Model defines distinct executions:
 
@@ -272,7 +366,7 @@ Reconstruction
 ```
 
 The Role Emergence Principle defines how common structures behave across those
-executions:
+executions and future processes:
 
 ```text
 Projection      -> role assigned by process
@@ -283,7 +377,7 @@ IdeaMark        -> role assigned by process
 This clarifies why a single Projection or Domain Context can remain reusable even
 though it plays different roles in different processes.
 
-## 10. Relationship to IdeaMark Document
+## 12. Relationship to IdeaMark Document
 
 IdeaMark Document is also process-neutral.
 
@@ -295,10 +389,38 @@ Its roles include:
 | Reconstruction | annotation over Original Source fragments |
 | Domain Distribution | structured population sample |
 | Harmony / Evidence Landscape | source of candidate parameters and evidence references |
+| Future process | role assigned without redefining the document type |
 
 Again, these are process roles, not separate structural types.
 
-## 11. Design Guidance
+## 13. Structure / Process / Parameter / Action
+
+The working architectural hierarchy is:
+
+```text
+Structure
+  -> Process
+      -> Parameter
+          -> Action
+```
+
+- **Structure**: Projection, Domain Context, IdeaMark Document, and other reusable
+  objects.
+- **Process**: Creation, Retrieve, Reconstruction, Harmony, and future workflows.
+- **Parameter**: Domain usage, epistemic mode, retrieval scope, Harmony Credit
+  policy, or other process controls.
+- **Action**: generate, validate, search, match, rank, compose, render, persist.
+
+This arrangement is an IdeaMark design pattern:
+
+```text
+stable structure
++ process-assigned role
++ optional parameterization
++ traceable action results
+```
+
+## 14. Design Guidance
 
 Recommended guidance for v0.3.0:
 
@@ -306,13 +428,15 @@ Recommended guidance for v0.3.0:
 - Prefer one Projection structure used differently by process.
 - Prefer one Domain Context structure used differently by process.
 - Prefer one IdeaMark Document structure used differently by process.
+- Allow process-specific optional extensions that other processes can ignore.
+- Use LLM-assisted supplementation when a process needs missing context.
 - Record process traces so later systems can inspect which role was assigned.
-- Allow explicit process policies to preserve, mask, replace, or merge Domain
-  Contexts.
+- Treat Domain as semantically important but operationally parameterized in
+  Retrieve.
 - Keep role assignment traceable, but avoid embedding process-specific role names
   as structural identity.
 
-## 12. Process Trace Example
+## 15. Process Trace Example
 
 ```yaml
 process_trace:
@@ -331,9 +455,13 @@ process_trace:
     domain_context_id: DCTX-AGPHARM
     domain_usage_policy:
       mode: mask
+    domain_trace:
+      original_domain_context_id: DCTX-AGPHARM
+      masked_for_search: true
+      retained_for_audit: true
     role_assignments:
       projection: query_and_retrieval_policy
-      domain_context: masked_population_context
+      domain_context: search_parameter_context
       ideamark: precomputed_index
 
   reconstruction:
@@ -350,22 +478,22 @@ process_trace:
 This example records different process roles while keeping Projection and Domain
 Context process-neutral as structural objects.
 
-## 13. Open Design Questions
+## 16. Open Design Questions
 
 1. Should `domain_usage_policy` belong to Projection, process execution metadata,
    or both?
-2. How should a process decide whether Domain Context should be preserved, masked,
-   replaced, or merged?
-3. How much of a masked Domain Context should remain visible for traceability?
+2. How should Domain range and Domain type queries be represented?
+3. How much of a masked Domain Context should remain visible for ranking and
+   traceability?
 4. Should Projection itself be maskable or only Domain Context?
-5. How should role assignments be represented in session artifacts versus
-   IdeaMark Core documents?
-6. How should cross-domain Retrieval report the Domain Contexts that were merged
-   or intentionally ignored?
-7. How should UI explain that the same Domain Context is being used in different
-   process roles without implying that there are different domain types?
+5. How should optional extensions distinguish process hints from structural
+   identity?
+6. How should role assignments and supplements be represented in session artifacts
+   versus IdeaMark Core documents?
+7. How should cross-domain Retrieve report Domain Contexts that were combined or
+   intentionally ignored?
 
-## 14. Working Position
+## 17. Working Position
 
 For v0.3.0, the recommended working position is:
 
@@ -373,14 +501,20 @@ For v0.3.0, the recommended working position is:
 - Domain Context is process-neutral; its role emerges from the execution process.
 - IdeaMark Document is process-neutral; its role emerges from the execution
   process.
-- Creation, Retrieve, and Reconstruction may assign different roles to the same
-  structural object.
-- Retrieve may preserve, mask, replace, or merge Domain Context to enable
-  cross-domain knowledge reuse.
-- Reconstruction may use a Domain Context different from the one used during
-  Creation to generate expressions suited to a new audience or use context.
-- Process traces should record role assignment and domain usage policy without
-  turning those roles into separate structural object types.
+- Process neutrality supports processes that have not yet been designed.
+- Process-neutral structures can become shared vocabulary and discussion anchors,
+  reducing communication cost.
+- Process-specific needs should be expressed as optional extensions, parameters,
+  supplementation, and traces rather than separate structural types.
+- LLM-assisted supplementation makes missing-context completion comparatively
+  low-cost.
+- In Retrieve, Domain is semantically influential but operationally a search or
+  exploration parameter.
+- Retrieve may preserve, mask, replace, merge, range-select, type-select, or leave
+  Domain unrestricted.
+- Process traces should record role assignment and Domain parameter usage without
+  turning those roles into structural identity.
+- This arrangement is a core IdeaMark design pattern.
 
 This principle keeps IdeaMark structures practical and reusable while preserving
 the expressive power needed for cross-domain intellectual-activity reuse.
